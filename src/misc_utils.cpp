@@ -20,13 +20,13 @@ string get_string_for_mode(mode_t md)
 	string perm;
 	S_ISDIR(md)?perm.push_back('d'):perm.push_back('-');
 	(md & S_IRUSR)?perm.push_back('r'):perm.push_back('-');
-	(md & S_IWUSR)?perm.push_back('x'):perm.push_back('-');
+	(md & S_IWUSR)?perm.push_back('w'):perm.push_back('-');
 	(md & S_IXUSR)?perm.push_back('x'):perm.push_back('-');
 	(md & S_IRGRP)?perm.push_back('r'):perm.push_back('-');
-	(md & S_IWGRP)?perm.push_back('x'):perm.push_back('-');
+	(md & S_IWGRP)?perm.push_back('w'):perm.push_back('-');
 	(md & S_IXGRP)?perm.push_back('x'):perm.push_back('-');
 	(md & S_IROTH)?perm.push_back('r'):perm.push_back('-');
-	(md & S_IWOTH)?perm.push_back('x'):perm.push_back('-');
+	(md & S_IWOTH)?perm.push_back('w'):perm.push_back('-');
 	(md & S_IXOTH)?perm.push_back('x'):perm.push_back('-');
 	return perm;
 	
