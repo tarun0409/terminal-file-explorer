@@ -42,6 +42,7 @@ char * convert_string_to_char(string str)
 		chars[i] = str[i];
 	}
 	chars[i] = '\0';
+	return chars;
 }
 
 vector<string> split(string str)
@@ -50,7 +51,6 @@ vector<string> split(string str)
 	string my_string = "NS";
 	for(int i=0; i<str.length(); i++)
 	{
-		cout<<"\n\nMY_STRING: "<<my_string<<endl;
 		if(str[i]==' ')
 		{
 				ret_str_vec.push_back(my_string);

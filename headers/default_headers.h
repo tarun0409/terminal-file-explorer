@@ -8,4 +8,5 @@
 #include<map>
 #include<time.h>
 #include<list>
+#include<string>
 using namespace std;

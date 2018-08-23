@@ -6,10 +6,7 @@ string convert_bytes_to_readable(size_t);
 string get_user_name(uid_t);
 string get_string_for_mode(mode_t);
 
-const char * dot = ".";
-
-list<char *> trace;
-list<char *>::iterator p_dir;
+const char * d_dot = ".";
 
 map<string,struct stat *> list_dir(const char * dir_name)
 {
@@ -31,7 +28,7 @@ map<string,struct stat *> list_dir(const char * dir_name)
 
 map<string,struct stat *> list_dir()
 {
-	return list_dir(dot);
+	return list_dir(d_dot);
 }
 
 void display_present_directory()
@@ -48,56 +45,20 @@ void display_present_directory()
 	}
 }
 
-
-void go_to(char * name)
+void display_dir_info(list<char *> trace)
 {
-	int x = chdir(name);
-	char * cwd = getcwd(NULL,100*sizeof(char));
-	if(!x)
+	cout<<endl<<"Trace of directories"<<endl;
+	for(list<char *>::iterator itr = trace.begin(); itr!=trace.end(); ++itr)
 	{
-		if(trace.empty())
-		{
-			trace.push_front(cwd);
-			p_dir = trace.begin();
-		}
-		else if(p_dir==trace.begin())
-		{
-			trace.push_front(cwd);
-			++p_dir;
-		}
-		else
-		{
-			list<char *> dummy;
-			dummy.splice(dummy.begin(),trace,trace.begin(),p_dir);
-			trace.push_front(cwd);
-			p_dir=trace.begin();
-		}
-		
-	}	
+		cout<<*itr<<"-->";
+	}
+	cout<<endl;
+	display_present_directory();
 }
 
-void traverse(char inp)
+
+int go_to(const char * name)
 {
-	if(inp=='b')
-	{
-		go_to("..");
-	}
-	else if(inp=='a')
-	{
-		list<char *>::iterator temp_it = p_dir;
-		++temp_it;
-		if((temp_it)!=trace.end())
-		{
-			++p_dir;
-			chdir(*p_dir);
-		}
-	}
-	else if(inp=='d')
-	{
-		if(p_dir!=trace.begin())
-		{
-			--p_dir;
-			chdir(*p_dir);
-		}
-	}
+	int x = chdir(name);
+	return x;	
 }
