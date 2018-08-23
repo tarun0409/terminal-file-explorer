@@ -32,6 +32,46 @@ string get_string_for_mode(mode_t md)
 	
 }
 
+char * convert_string_to_char(string str)
+{
+	int n = str.length();
+	char * chars = (char *)malloc((n+1)*sizeof(char));
+	int i;
+	for(i=0; i<n; i++)
+	{
+		chars[i] = str[i];
+	}
+	chars[i] = '\0';
+}
+
+vector<string> split(string str)
+{
+	vector<string> ret_str_vec;
+	string my_string = "NS";
+	for(int i=0; i<str.length(); i++)
+	{
+		cout<<"\n\nMY_STRING: "<<my_string<<endl;
+		if(str[i]==' ')
+		{
+				ret_str_vec.push_back(my_string);
+				my_string = "NS";
+		}
+		else
+		{
+			if(!my_string.compare("NS"))
+			{
+				my_string = "";
+			}
+			my_string+=str[i];
+		}
+	}
+	if(my_string.compare("NS"))
+	{
+		ret_str_vec.push_back(my_string);
+	}
+	return ret_str_vec;
+}
+
 string convert_bytes_to_readable(size_t bytes)
 {
 	double output = (double)bytes;

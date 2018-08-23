@@ -1,18 +1,47 @@
 #include "../headers/default_headers.h"
 #include "../headers/syscalls.h"
-map<string,struct stat *> list_dir();
-string convert_unix_time(time_t);
-string convert_bytes_to_readable(size_t);
-string get_user_name(uid_t);
-string get_string_for_mode(mode_t);
+
+void display_present_directory();
+void traverse(char);
+void exec_command(string);
+
+void command_mode()
+{
+	string cmd = "";
+	while(cmd.compare("e"))
+	{
+		cout<<"\n\nEnter the command:\n";
+		cin>>cmd;
+		if(cmd.compare("e"))
+		{
+			exec_command(cmd);
+		}
+		display_present_directory();
+	}
+}
+
+void normal_mode()
+{
+	char inp = 's';
+	while(inp!='e')
+	{
+		display_present_directory();
+		cout<<endl<<"Enter any one of following:"<<endl<<"Switch to command mode (c)"<<endl<<"Go to previous directory (b)"<<endl<<"Logical left (l)"<<endl<<"Logical right (r)"<<endl<<"Exit (e)"<<endl;
+		cin>>inp;
+		if(inp=='c')
+		{
+			command_mode();
+		}
+		if(inp!='e')
+		{
+			traverse(inp);
+		}
+	}
+}
+
+
 int main()
 {
-	map<string,struct stat *> list = list_dir();
-	for(map<string,struct stat *>::iterator l_i = list.begin(); l_i!=list.end(); ++l_i)
-	{
-		string name = l_i->first;
-		struct stat * status = l_i->second; 
-		cout<<left<<setw(25)<<name<<setw(25)<<convert_bytes_to_readable(status->st_size)<<setw(25)<<get_user_name(status->st_uid)<<setw(25)<<get_string_for_mode(status->st_mode)<<setw(25)<<convert_unix_time((status->st_ctime))<<endl;
-	}
+	normal_mode();
 	return 0;
 }
