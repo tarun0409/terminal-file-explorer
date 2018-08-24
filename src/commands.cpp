@@ -10,6 +10,8 @@ list<char *>::iterator p_dir;
 void display_dir_info(list<char *>);
 void setNonCanonicalMode();
 void setCanonicalMode();
+void clr_screen();
+void move_cursor(char);
 
 const char * dot_dot = "..";
 const char * dot = ".";
@@ -132,19 +134,21 @@ void normal_mode()
 	setNonCanonicalMode();
 	char op = 'g';
 	change_dir(dot);
+	display_dir_info(trace);
 	while(op!='q')
 	{
-		display_dir_info(trace);
-		cout<<endl<<"Enter any one of following:"<<endl<<"Switch to command mode (c)"<<endl<<"Go to previous directory (b)"<<endl<<"Logical left (a)"<<endl<<"Logical right (d)"<<endl<<"Exit (q)"<<endl;
-		cout<<endl;
-		cout<<endl;
-		
 		op = getchar();
 		if(op == '\033')
 		{
 			getchar();
 			switch(getchar()) 
 			{
+				case 'A':
+					move_cursor('w');
+					break;
+				case 'B':
+					move_cursor('s');
+					break;
 				case 'C':
 					traverse('d');
 					break;
@@ -153,7 +157,7 @@ void normal_mode()
 					break;
 			}		
 		}
-		else if(op == '\010')
+		else if(op == 127)
 		{
 			traverse('b');
 		}
@@ -162,4 +166,6 @@ void normal_mode()
 			command_mode();
 		}
 	}
+	setCanonicalMode();
+	clr_screen();
 }
