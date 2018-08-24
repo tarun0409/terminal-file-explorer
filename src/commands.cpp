@@ -1,13 +1,17 @@
 #include "../headers/default_headers.h"
 #include "../headers/syscalls.h"
 
+struct dir_list
+{
+	char ** dirs;
+	int count;
+};
 vector<string> split(string);
 int  go_to(const char *);
 char * convert_string_to_char(string);
-void display_present_directory();
+struct dir_list * display_present_directory();
 list<char *> trace;
 list<char *>::iterator p_dir;
-void display_dir_info(list<char *>);
 void setNonCanonicalMode();
 void setCanonicalMode();
 void clr_screen();
@@ -16,9 +20,10 @@ void move_cursor(char);
 const char * dot_dot = "..";
 const char * dot = ".";
 
-void change_dir(const char * dir_name)
+struct dir_list * change_dir(const char * dir_name)
 {
 	int st = go_to(dir_name);
+	struct dir_list * dl = NULL;
 	if(!st)
 	{
 		char * cwd = getcwd(NULL,100*sizeof(char));
@@ -57,11 +62,21 @@ void change_dir(const char * dir_name)
 				}
 			}
 		}
+		clr_screen();
+		//cout<<"Trace of the directory :"<<endl;
+		//for(list<char *>::iterator itr = trace.begin(); itr!=trace.end(); ++itr)
+		//{
+			//cout<<*itr<<"-->";
+		//}
+		//cout<<endl;
+		dl = display_present_directory();
 	}
+	return dl;
 }
 
-void traverse(char inp)
+struct dir_list * traverse(char inp)
 {
+	struct dir_list * dl = NULL;
 	if(!trace.empty())
 	{
 		list<char *>::iterator t;
@@ -71,17 +86,23 @@ void traverse(char inp)
 		{
 			++p_dir;
 			go_to(*p_dir);
+			clr_screen();
+			dl = display_present_directory();
 		}
 		else if(inp=='a' && p_dir!=trace.begin())
 		{
 			--p_dir;
 			go_to(*p_dir);
+			clr_screen();
+			dl = display_present_directory();
 		}
 		else if(inp=='b')
 		{
 			if(t!=trace.begin())
 			{
 				go_to(dot_dot);
+				clr_screen();
+				dl = display_present_directory();
 				char * cwd = getcwd(NULL,100*sizeof(char));
 				t = p_dir;
 				--t;
@@ -99,6 +120,7 @@ void traverse(char inp)
 		}
 		
 	}
+	return dl;
 }
 void exec_command(string cmd)
 {
@@ -112,10 +134,11 @@ void exec_command(string cmd)
 	}
 }
 
-void command_mode()
+struct dir_list * command_mode()
 {
 	setCanonicalMode();
 	string cmd = "";
+	struct dir_list * dl = change_dir(dot);
 	while(cmd.compare("e"))
 	{
 		cout<<"\n\nEnter the command:\n";
@@ -124,17 +147,22 @@ void command_mode()
 		{
 			exec_command(cmd);
 		}
-		display_dir_info(trace);
+		dl = change_dir(dot);
+		dl = change_dir(dot);
 	}
 	setNonCanonicalMode();
+	return dl;
 }
 
 void normal_mode()
 {
 	setNonCanonicalMode();
 	char op = 'g';
-	change_dir(dot);
-	display_dir_info(trace);
+	struct dir_list * dl = change_dir(dot);
+	int n = dl->count;
+	char ** dir_names = dl->dirs;
+	printf("\033[%dA",n);
+	int pos = 1;
 	while(op!='q')
 	{
 		op = getchar();
@@ -144,16 +172,34 @@ void normal_mode()
 			switch(getchar()) 
 			{
 				case 'A':
-					move_cursor('w');
+					if(pos>1)
+					{
+						pos--;
+						move_cursor('w');
+					}
 					break;
 				case 'B':
-					move_cursor('s');
+					if(pos<n)
+					{
+						pos++;
+						move_cursor('s');
+					}
 					break;
 				case 'C':
 					traverse('d');
+					dl = change_dir(dot);
+					n = dl->count;
+					dir_names = dl->dirs;
+					printf("\033[%dA",n);
+					pos = 1;
 					break;
 				case 'D':
 					traverse('a');
+					dl = change_dir(dot);
+					n = dl->count;
+					dir_names = dl->dirs;
+					printf("\033[%dA",n);
+					pos = 1;
 					break;
 			}		
 		}
@@ -161,9 +207,21 @@ void normal_mode()
 		{
 			traverse('b');
 		}
+		else if(op == 10)
+		{
+			char * dir_name = dir_names[pos-1];
+			dl = change_dir(dir_name);
+			n = dl->count;
+			dir_names = dl->dirs;
+			printf("\033[%dA",n);
+			pos = 1;
+		}
 		else if(op=='c')
 		{
-			command_mode();
+			dl = command_mode();
+			n = dl->count;
+			dir_names = dl->dirs;
+			printf("\033[%dA",n);
 		}
 	}
 	setCanonicalMode();
