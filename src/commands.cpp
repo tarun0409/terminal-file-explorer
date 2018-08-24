@@ -8,6 +8,8 @@ void display_present_directory();
 list<char *> trace;
 list<char *>::iterator p_dir;
 void display_dir_info(list<char *>);
+void setNonCanonicalMode();
+void setCanonicalMode();
 
 const char * dot_dot = "..";
 const char * dot = ".";
@@ -110,6 +112,7 @@ void exec_command(string cmd)
 
 void command_mode()
 {
+	setCanonicalMode();
 	string cmd = "";
 	while(cmd.compare("e"))
 	{
@@ -121,27 +124,42 @@ void command_mode()
 		}
 		display_dir_info(trace);
 	}
+	setNonCanonicalMode();
 }
 
 void normal_mode()
 {
-	string inp = "s";
+	setNonCanonicalMode();
+	char op = 'g';
 	change_dir(dot);
-	while(inp.compare("e"))
+	while(op!='q')
 	{
 		display_dir_info(trace);
-		cout<<endl<<"Enter any one of following:"<<endl<<"Switch to command mode (c)"<<endl<<"Go to previous directory (b)"<<endl<<"Logical left (a)"<<endl<<"Logical right (d)"<<endl<<"Exit (e)"<<endl;
+		cout<<endl<<"Enter any one of following:"<<endl<<"Switch to command mode (c)"<<endl<<"Go to previous directory (b)"<<endl<<"Logical left (a)"<<endl<<"Logical right (d)"<<endl<<"Exit (q)"<<endl;
 		cout<<endl;
 		cout<<endl;
 		
-		getline(cin,inp);
-		if(!inp.compare("c"))
+		op = getchar();
+		if(op == '\033')
+		{
+			getchar();
+			switch(getchar()) 
+			{
+				case 'C':
+					traverse('d');
+					break;
+				case 'D':
+					traverse('a');
+					break;
+			}		
+		}
+		else if(op == '\010')
+		{
+			traverse('b');
+		}
+		else if(op=='c')
 		{
 			command_mode();
-		}
-		else if(inp.compare("e"))
-		{
-			traverse(inp[0]);
 		}
 	}
 }

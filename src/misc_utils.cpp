@@ -32,6 +32,24 @@ string get_string_for_mode(mode_t md)
 	
 }
 
+void setNonCanonicalMode()
+{
+	struct termios info;
+	tcgetattr(0,&info);
+	info.c_lflag = info.c_lflag | ECHO;
+	info.c_lflag = (info.c_lflag & ~ICANON);
+	tcsetattr(0,TCSANOW,&info);
+}
+
+void setCanonicalMode()
+{
+	struct termios info;
+	tcgetattr(0,&info);
+	info.c_lflag = info.c_lflag | ECHO;
+	info.c_lflag = (info.c_lflag | ICANON);
+	tcsetattr(0,TCSANOW,&info);
+}
+
 char * convert_string_to_char(string str)
 {
 	int n = str.length();
