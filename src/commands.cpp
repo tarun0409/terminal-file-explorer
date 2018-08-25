@@ -186,16 +186,14 @@ void normal_mode()
 					}
 					break;
 				case 'C':
-					traverse('d');
-					dl = change_dir(dot);
+					dl = traverse('d');
 					n = dl->count;
 					dir_names = dl->dirs;
 					printf("\033[%dA",n);
 					pos = 1;
 					break;
 				case 'D':
-					traverse('a');
-					dl = change_dir(dot);
+					dl = traverse('a');
 					n = dl->count;
 					dir_names = dl->dirs;
 					printf("\033[%dA",n);
@@ -205,7 +203,11 @@ void normal_mode()
 		}
 		else if(op == 127)
 		{
-			traverse('b');
+			dl = traverse('b');
+			n = dl->count;
+			dir_names = dl->dirs;
+			printf("\033[%dA",n);
+			pos = 1;
 		}
 		else if(op == 10)
 		{
