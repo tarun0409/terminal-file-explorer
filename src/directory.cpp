@@ -5,21 +5,27 @@ string convert_unix_time(time_t);
 string convert_bytes_to_readable(size_t);
 string get_user_name(uid_t);
 string get_string_for_mode(mode_t);
-void clr_screen();
-char * convert_string_to_char(string);
 
-const char * d_dot = ".";
+list<char *> trace;
+list<char *>::iterator p_dir;
 
-struct dir_list
+const char * dot = ".";
+const char * dot_dot = "..";
+
+struct dir_info
 {
-	char ** dirs;
-	int count;
+	string name;
+	string mode;
+	string user_name;
+	string size;
+	string m_time;
 };
 
-map<string,struct stat *> list_dir(const char * dir_name)
+
+vector<struct dir_info> get_dir_info(const char * dir_name)
 {
 	DIR * currentDir = opendir(dir_name);
-	map<string,struct stat *> dir_entries;
+	vector<struct dir_info> directories;
 	if(currentDir!=NULL)
 	{
 		struct dirent * dirEntry;
@@ -28,42 +34,117 @@ map<string,struct stat *> list_dir(const char * dir_name)
 			char * entryName = dirEntry->d_name;
 			struct stat * statbuf = (struct stat *)malloc(sizeof(struct stat));
 			lstat(entryName,statbuf);
-			dir_entries.insert(make_pair(entryName,statbuf));
+			struct dir_info d;
+			d.name = entryName;
+			d.mode = get_string_for_mode(statbuf->st_mode);
+			d.user_name = get_user_name(statbuf->st_uid);
+			d.size = convert_bytes_to_readable(statbuf->st_size);
+			d.m_time = convert_unix_time(statbuf->st_ctime);
+			directories.push_back(d);
 		}
 	}
-	return dir_entries;
+	return directories;
 }
 
-map<string,struct stat *> list_dir()
+vector<struct dir_info> get_dir_info()
 {
-	return list_dir(d_dot);
+	return get_dir_info(dot);
 }
-
-struct dir_list * display_present_directory()
-{
-	char * cwd = getcwd(NULL,100*sizeof(char));
-	map<string,struct stat *> list = list_dir();
-	int n = list.size();
-	char ** dir_names  = (char **)malloc(n*sizeof(char *));
-	int i=0;
-	for(map<string,struct stat *>::iterator l_i = list.begin(); l_i!=list.end(); ++l_i)
-	{
-		string name = l_i->first;
-		dir_names[i] = convert_string_to_char(name);
-		struct stat * status = l_i->second; 
-		cout<<left<<setw(25)<<name<<setw(25)<<convert_bytes_to_readable(status->st_size)<<setw(25)<<get_user_name(status->st_uid)<<setw(25)<<get_string_for_mode(status->st_mode)<<setw(25)<<convert_unix_time((status->st_ctime))<<endl;
-		i++;
-	}
-	struct dir_list * dl = (struct dir_list *)malloc(sizeof(struct dir_list));
-	dl->dirs = dir_names;
-	dl->count = n;
-	return dl;
-}
-
-
 
 int go_to(const char * name)
 {
 	int x = chdir(name);
 	return x;	
+}
+
+void traverse(char inp)
+{
+	if(!trace.empty())
+	{
+		list<char *>::iterator t;
+		t = trace.end();
+		--t;
+		if(inp=='d' && p_dir!=t)
+		{
+			++p_dir;
+			go_to(*p_dir);
+		}
+		else if(inp=='a' && p_dir!=trace.begin())
+		{
+			--p_dir;
+			go_to(*p_dir);
+		}
+		else if(inp=='b')
+		{
+			if(t!=trace.begin())
+			{
+				go_to(dot_dot);
+				char * cwd = getcwd(NULL,100*sizeof(char));
+				t = p_dir;
+				--t;
+				string dir1 = *t;
+				string dir2 = cwd;
+				if(dir1.compare(dir2))
+				{
+					trace.push_back(cwd);
+				}
+				else
+				{
+					--p_dir;
+				}
+			}
+		}
+		
+	}
+}
+
+
+void change_dir(const char * dir_name)
+{
+	int st = go_to(dir_name);
+	if(!st)
+	{
+		char * cwd = getcwd(NULL,100*sizeof(char));
+		if(trace.empty())
+		{
+			trace.push_back(cwd);
+			p_dir = trace.begin();
+		}
+		else
+		{
+			string c1 = cwd;
+			string c2 = *p_dir;
+			if(c1.compare(c2))
+			{
+				list<char *>::iterator t = p_dir;
+				++t;
+				if(t!=trace.end())
+				{
+					c2 = *t;
+					if(!c1.compare(c2))
+					{
+						++p_dir;
+					}
+					else
+					{
+							list<char *> temp_list;
+							temp_list.splice(temp_list.begin(),trace,t,trace.end());
+							trace.push_back(cwd);
+							++p_dir;
+					}
+				}
+				else
+				{
+					trace.push_back(cwd);
+					++p_dir;
+				}
+			}
+		}
+		//cout<<"Trace of the directory :"<<endl;
+		//for(list<char *>::iterator itr = trace.begin(); itr!=trace.end(); ++itr)
+		//{
+			//cout<<*itr<<"-->";
+		//}
+		cout<<endl;
+	}
 }

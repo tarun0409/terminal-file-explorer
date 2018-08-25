@@ -4,7 +4,7 @@ OBJ_DIR = bin
 SRC_DIR = src
 HEAD_FILE_NAMES = default_headers.h syscalls.h
 HEAD_FILES = $(patsubst %,$(HEAD_DIR)/%,$(HEAD_FILE_NAMES))
-OBJ_FILE_NAMES = terminal.o directory.o misc_utils.o commands.o start_app.o
+OBJ_FILE_NAMES = misc_utils.o directory.o commands.o terminal.o start_app.o
 OBJ_FILES = $(patsubst %,$(OBJ_DIR)/%,$(OBJ_FILE_NAMES))
 EXEC_FILE = texplore
 
