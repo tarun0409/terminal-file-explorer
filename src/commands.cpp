@@ -190,4 +190,15 @@ void exec_command(string cmd)
 			unlink(convert_string_to_char(file_name));
 		}
 	}
+	if(!op.compare("rename"))
+	{
+		string root_dir = get_root_dir();
+		string old_name = cmd_split[1];
+		string new_name = cmd_split[2];
+		string temp1 = root_dir;
+		old_name = temp1.append(old_name);
+		string temp2 = root_dir;
+		new_name = temp2.append(new_name);
+		rename(convert_string_to_char(old_name),convert_string_to_char(new_name));
+	}
 }
