@@ -5,6 +5,7 @@ string convert_unix_time(time_t);
 string convert_bytes_to_readable(size_t);
 string get_user_name(uid_t);
 string get_string_for_mode(mode_t);
+char * convert_string_to_char(string);
 
 list<char *> trace;
 list<char *>::iterator p_dir;
@@ -29,9 +30,15 @@ vector<struct dir_info> get_dir_info(const char * dir_name)
 	if(currentDir!=NULL)
 	{
 		struct dirent * dirEntry;
+		set<string> sorted_dir_names;
 		while((dirEntry = readdir(currentDir))!=NULL)
 		{
-			char * entryName = dirEntry->d_name;
+			string entryName = dirEntry->d_name;
+			sorted_dir_names.insert(entryName);
+		}
+		for(set<string>::iterator itr = sorted_dir_names.begin(); itr!=sorted_dir_names.end(); ++itr)
+		{
+			char * entryName = convert_string_to_char(*itr);
 			struct stat * statbuf = (struct stat *)malloc(sizeof(struct stat));
 			lstat(entryName,statbuf);
 			struct dir_info d;

@@ -92,6 +92,8 @@ void change_directory_display()
 	//char ** dir_names  = (char **)malloc(n*sizeof(char *));
 	struct dir_info_max_sizes dims = get_dir_info_max_sizes(directories);
 	clr_screen();
+	vector<string> temp;
+	dir_names.swap(temp);
 	for(int i=0; i<n; i++)
 	{
 		struct dir_info t_d = directories[i];
@@ -164,10 +166,12 @@ void command_mode()
 
 int process_key_stroke(int ks)
 {
+	char * t;
 	switch(ks)
 	{
 		case 10:
-			change_dir(convert_string_to_char(dir_names[curr_pos-1]));
+			t = convert_string_to_char(dir_names[curr_pos-1]);
+			change_dir(t);
 			change_directory_display();
 			break;
 		case 97:
