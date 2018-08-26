@@ -2,6 +2,8 @@
 #include "../headers/syscalls.h"
 
 #define clear() printf("\033[H\033[J")
+#define COMMAND_MODE 1
+#define NORMAL_MODE 0
 
 char * convert_string_to_char(string);
 vector<struct dir_info> get_dir_info();
@@ -35,10 +37,10 @@ struct dir_list
 
 int curr_pos;
 int n_dir;
-//vector<string> dir_names;
 vector<struct dir_info> directories;
 int win_left;
 int win_right;
+int rows;
 
 void clr_screen()
 {
@@ -84,7 +86,7 @@ struct dir_info_max_sizes get_dir_info_max_sizes()
 	return dims;
 }
 
-void list_directories()
+void list_directories(int mode)
 {
 	int n = win_right - win_left + 1;
 	if(curr_pos>n)
@@ -112,10 +114,17 @@ void list_directories()
 		struct dir_info t_d = directories[i];
 		cout<<left<<setw((dims.mode) + 4)<<(t_d.mode)<<setw((dims.user_name) + 4)<<(t_d.user_name)<<setw((dims.size) + 4)<<(t_d.size)<<setw((dims.m_time) + 4)<<(t_d.m_time)<<setw((dims.name) + 4)<<(t_d.name)<<endl;
 	}
-	move_cursor((n-curr_pos+1),1);
+	if(mode==NORMAL_MODE)
+	{
+			move_cursor((n-curr_pos+1),1);
+	}
+	else
+	{
+			move_cursor((rows-n-1),0);
+	}
 }
 
-void change_directory_display()
+void change_directory_display(int mode)
 {
 	change_dir(".");
 	directories = get_dir_info();
@@ -123,7 +132,7 @@ void change_directory_display()
 	n_dir = n;
 	curr_pos = 1;
 	struct winsize ws = get_window_size();
-	int rows = ws.ws_row;
+	rows = ws.ws_row;
 	win_left = 0;
 	if(n<rows)
 	{
@@ -133,7 +142,7 @@ void change_directory_display()
 	{
 		win_right = (rows-3);
 	}
-	list_directories();
+	list_directories(mode);
 }
 
 void setNonCanonicalMode()
@@ -156,18 +165,29 @@ void setCanonicalMode()
 
 void command_mode()
 {
-	setCanonicalMode();
-	string cmd = "";
-	while(cmd.compare("e"))
+	change_directory_display(COMMAND_MODE);
+	int quit = 0;
+	while(!quit)
 	{
-		cout<<"\n\nEnter the command:\n";
-		getline(cin,cmd);
-		if(cmd.compare("e"))
+		char op = getchar();
+		if(op=='\033')
 		{
+			quit = 1;
+		}
+		else
+		{
+			string cmd = "";
+			string temp_cmd = "";
+			cout<<op;
+			cmd+=op;
+			setCanonicalMode();
+			getline(cin,temp_cmd);
+			cmd.append(temp_cmd);
 			exec_command(cmd);
+			change_directory_display(COMMAND_MODE);
+			setNonCanonicalMode();
 		}
 	}
-	setNonCanonicalMode();
 }
 
 int process_key_stroke(int ks)
@@ -180,33 +200,33 @@ int process_key_stroke(int ks)
 			di = directories[curr_pos-1];
 			t = convert_string_to_char(di.name);
 			change_dir(t);
-			change_directory_display();
+			change_directory_display(NORMAL_MODE);
 			break;
 		case 97:
 			traverse('a');
-			change_directory_display();
+			change_directory_display(NORMAL_MODE);
 			break;
 		case 98:
 			traverse('b');
-			change_directory_display();
+			change_directory_display(NORMAL_MODE);
 			break;
 		case 99:
 			command_mode();
-			change_directory_display();
+			change_directory_display(NORMAL_MODE);
 			break;
 		case 100:
 			traverse('d');
-			change_directory_display();
+			change_directory_display(NORMAL_MODE);
 			break;
 		case 113:
 			return 1;
 		case 115:
 			curr_pos++;
-			list_directories();
+			list_directories(NORMAL_MODE);
 			break;
 		case 119:
 			curr_pos--;
-			list_directories();
+			list_directories(NORMAL_MODE);
 			break;
 	}
 	return 0;
@@ -214,7 +234,7 @@ int process_key_stroke(int ks)
 void normal_mode()
 {
 	setNonCanonicalMode();
-	change_directory_display();
+	change_directory_display(NORMAL_MODE);
 	int quit = 0;
 	while(!quit)
 	{

@@ -147,11 +147,6 @@ void change_dir(const char * dir_name)
 				}
 			}
 		}
-		//cout<<"Trace of the directory :"<<endl;
-		//for(list<char *>::iterator itr = trace.begin(); itr!=trace.end(); ++itr)
-		//{
-			//cout<<*itr<<"-->";
-		//}
 		cout<<endl;
 	}
 }
