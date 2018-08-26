@@ -35,17 +35,20 @@ struct dir_list
 
 int curr_pos;
 int n_dir;
-vector<string> dir_names;
+//vector<string> dir_names;
+vector<struct dir_info> directories;
+int win_left;
+int win_right;
 
 void clr_screen()
 {
 	clear();
 }
 
-struct winsize * getSizeOfWindow()
+struct winsize get_window_size()
 {
-	struct winsize * w = (struct winsize *)malloc(sizeof(struct winsize));
-    ioctl(0, TIOCGWINSZ, w);
+	struct winsize w;
+    ioctl(0, TIOCGWINSZ, &w);
 	return w;
 }
 
@@ -61,9 +64,7 @@ void move_cursor(int n, int dir)
 	}
 }
 
-
-
-struct dir_info_max_sizes get_dir_info_max_sizes(vector<struct dir_info> d)
+struct dir_info_max_sizes get_dir_info_max_sizes()
 {
 	struct dir_info_max_sizes dims;
 	dims.name = 0;
@@ -71,9 +72,9 @@ struct dir_info_max_sizes get_dir_info_max_sizes(vector<struct dir_info> d)
 	dims.user_name = 0;
 	dims.size = 0;
 	dims.m_time = 0;
-	for(int i=0; i<d.size(); i++)
+	for(int i=win_left; i<=win_right; i++)
 	{
-		struct dir_info t_d = d[i];
+		struct dir_info t_d = directories[i];
 		(dims.name) = ((t_d.name).length() > dims.name)?(t_d.name).length():(dims.name);
 		(dims.mode) = ((t_d.mode).length() > dims.mode)?(t_d.mode).length():(dims.mode);
 		(dims.user_name) = ((t_d.user_name).length() > dims.user_name)?(t_d.user_name).length():(dims.user_name);
@@ -83,52 +84,57 @@ struct dir_info_max_sizes get_dir_info_max_sizes(vector<struct dir_info> d)
 	return dims;
 }
 
+void list_directories()
+{
+	int n = win_right - win_left + 1;
+	if(curr_pos>n)
+	{
+		if((win_right+1)<n_dir)
+		{
+			win_left++;
+			win_right++;
+		}
+		curr_pos = n;
+	}
+	if(curr_pos<1)
+	{
+		if((win_left-1)>=0)
+		{
+			win_left--;
+			win_right--;
+		}
+		curr_pos = 1;
+	}
+	clr_screen();
+	struct dir_info_max_sizes dims = get_dir_info_max_sizes();
+	for(int i=win_left; i<=win_right; i++)
+	{
+		struct dir_info t_d = directories[i];
+		cout<<left<<setw((dims.mode) + 4)<<(t_d.mode)<<setw((dims.user_name) + 4)<<(t_d.user_name)<<setw((dims.size) + 4)<<(t_d.size)<<setw((dims.m_time) + 4)<<(t_d.m_time)<<setw((dims.name) + 4)<<(t_d.name)<<endl;
+	}
+	move_cursor((n-curr_pos+1),1);
+}
+
 void change_directory_display()
 {
 	change_dir(".");
-	vector<struct dir_info> directories = get_dir_info();
+	directories = get_dir_info();
 	int n = directories.size();
 	n_dir = n;
-	//char ** dir_names  = (char **)malloc(n*sizeof(char *));
-	struct dir_info_max_sizes dims = get_dir_info_max_sizes(directories);
-	clr_screen();
-	vector<string> temp;
-	dir_names.swap(temp);
-	for(int i=0; i<n; i++)
-	{
-		struct dir_info t_d = directories[i];
-		dir_names.push_back(t_d.name);
-		//dir_names[i] = convert_string_to_char(t_d.name);
-		cout<<left<<setw((dims.mode) + 4)<<(t_d.mode)<<setw((dims.user_name) + 4)<<(t_d.user_name)<<setw((dims.size) + 4)<<(t_d.size)<<setw((dims.m_time) + 4)<<(t_d.m_time)<<setw((dims.name) + 4)<<(t_d.name)<<endl;
-	}
 	curr_pos = 1;
-	move_cursor(n_dir,1);
-	//struct dir_list * dl = (struct dir_list *)malloc(sizeof(struct dir_list));
-	//dl->dirs = dir_names;
-	//dl->count = n;
-	//return dl;
+	struct winsize ws = get_window_size();
+	int rows = ws.ws_row;
+	win_left = 0;
+	if(n<rows)
+	{
+		win_right = (n-1);
+	}
+	else
+	{
+		win_right = (rows-3);
+	}
+	list_directories();
 }
-
-
-//struct dir_list * display_present_directory()
-//{
-//	vector<struct dir_info> directories = get_dir_info();
-//	int n = directories.size();
-//	char ** dir_names  = (char **)malloc(n*sizeof(char *));
-//	struct dir_info_max_sizes dims = get_dir_info_max_sizes(directories);
-//	for(int i=0; i<n; i++)
-//	{
-//		struct dir_info t_d = directories[i];
-//		dir_names[i] = convert_string_to_char(t_d.name);
-//		cout<<left<<setw((dims.mode) + 4)<<(t_d.mode)<<setw((dims.user_name) + 4)<<(t_d.user_name)<<setw((dims.size) + 4)<<(t_d.size)<<setw((dims.m_time) + 4)<<(t_d.m_time)<<setw((dims.name) + 4)<<(t_d.name)<<endl;
-//	}
-	//struct dir_list * dl = (struct dir_list *)malloc(sizeof(struct dir_list));
-	//dl->dirs = dir_names;
-	//dl->count = n;
-	//return dl;
-//}
-
-
 
 void setNonCanonicalMode()
 {
@@ -166,11 +172,13 @@ void command_mode()
 
 int process_key_stroke(int ks)
 {
+	struct dir_info di;
 	char * t;
 	switch(ks)
 	{
 		case 10:
-			t = convert_string_to_char(dir_names[curr_pos-1]);
+			di = directories[curr_pos-1];
+			t = convert_string_to_char(di.name);
 			change_dir(t);
 			change_directory_display();
 			break;
@@ -185,7 +193,6 @@ int process_key_stroke(int ks)
 		case 99:
 			command_mode();
 			change_directory_display();
-			move_cursor(n_dir,0);
 			break;
 		case 100:
 			traverse('d');
@@ -194,18 +201,12 @@ int process_key_stroke(int ks)
 		case 113:
 			return 1;
 		case 115:
-			if(curr_pos<n_dir)
-			{
-				curr_pos++;
-				move_cursor(1,0);
-			}
+			curr_pos++;
+			list_directories();
 			break;
 		case 119:
-			if(curr_pos>1)
-			{
-				curr_pos--;
-				move_cursor(1,1);
-			}
+			curr_pos--;
+			list_directories();
 			break;
 	}
 	return 0;
