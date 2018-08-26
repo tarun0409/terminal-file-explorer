@@ -4,3 +4,4 @@
 #include <sys/ioctl.h>
 #include<pwd.h>
 #include<termios.h>
+#include<fcntl.h>

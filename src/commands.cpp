@@ -29,29 +29,6 @@ int is_current_dir_in_delete_path(string dir_name)
 	return 0;
 }
 
-string prev_dir(string curr_dir)
-{
-	string path = "";
-	int n = curr_dir.length();
-	string curr_word = "";
-	for(int i=0; i<n; i++)
-	{
-		char s = curr_dir[i];
-		if(s=='/')
-		{
-			path+='/';
-			path.append(curr_word);
-			curr_word = "";
-		}
-		else
-		{
-			curr_word+=s;
-		}
-	}
-	return path;
-	
-}
-
 void remove_directory_contents(char * dir_name)
 {
 	vector<struct dir_info> dirs = get_dir_info(dir_name);
@@ -118,5 +95,25 @@ void exec_command(string cmd)
 			remove_directory_contents(d_name);
 			rmdir(d_name);
 		}
+	}
+	if(!op.compare("create_file"))
+	{
+		string file_name = cmd_split[1];
+		string dir_name = cmd_split[2];
+		if(!dir_name.compare("."))
+		{
+			string cwd = getcwd(NULL,100*sizeof(char));
+			cwd+='/';
+			file_name = cwd.append(file_name);
+		}
+		else
+		{
+			string root_dir = get_root_dir();
+			dir_name = root_dir.append(dir_name);
+			dir_name+='/';
+			file_name = dir_name.append(file_name);
+		}
+		FILE * f = fopen(convert_string_to_char(file_name),"w+");
+		fclose(f);
 	}
 }
