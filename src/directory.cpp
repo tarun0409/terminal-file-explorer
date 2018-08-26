@@ -23,6 +23,17 @@ struct dir_info
 };
 
 
+int is_directory(char * d)
+{
+	struct stat statbuf;
+	lstat(d,&statbuf);
+	if(S_ISDIR(statbuf.st_mode))
+	{
+		return 1;
+	}
+	return 0;
+}
+
 vector<struct dir_info> get_dir_info(const char * dir_name)
 {
 	DIR * currentDir = opendir(dir_name);

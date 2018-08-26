@@ -202,6 +202,10 @@ int process_key_stroke(int ks)
 			change_dir(t);
 			change_directory_display(NORMAL_MODE);
 			break;
+		case 58:
+			command_mode();
+			change_directory_display(NORMAL_MODE);
+			break;
 		case 97:
 			traverse('a');
 			change_directory_display(NORMAL_MODE);
@@ -209,11 +213,7 @@ int process_key_stroke(int ks)
 		case 98:
 			traverse('b');
 			change_directory_display(NORMAL_MODE);
-			break;
-		case 99:
-			command_mode();
-			change_directory_display(NORMAL_MODE);
-			break;
+			break;	
 		case 100:
 			traverse('d');
 			change_directory_display(NORMAL_MODE);
