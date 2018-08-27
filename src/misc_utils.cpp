@@ -11,7 +11,16 @@ string convert_unix_time(time_t t)
 string get_user_name(uid_t user_id)
 {
 	struct passwd *pw = getpwuid (user_id);
-	char * name = pw->pw_name;
+	char * name = NULL;
+	if(pw==NULL)
+	{
+		return "";
+	}
+	else
+	{
+			name = pw->pw_name;
+	}
+	
 	return name;
 }
 

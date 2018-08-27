@@ -34,6 +34,15 @@ int is_directory(char * d)
 	return 0;
 }
 
+char * get_current_dir()
+{
+	if(!trace.empty())
+	{
+		return *p_dir;
+	}
+	return NULL;
+}
+
 vector<struct dir_info> get_dir_info(const char * dir_name)
 {
 	DIR * currentDir = opendir(dir_name);

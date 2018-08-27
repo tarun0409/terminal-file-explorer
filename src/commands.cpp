@@ -1,5 +1,7 @@
 #include "../headers/default_headers.h"
 #include "../headers/syscalls.h"
+#define COMMAND_MODE 1
+#define NORMAL_MODE 0
 
 vector<string> split(string);
 char * convert_string_to_char(string);
@@ -8,6 +10,10 @@ int is_directory(char *);
 string get_root_dir();
 vector<struct dir_info> get_dir_info();
 vector<struct dir_info> get_dir_info(const char *);
+void setNonCanonicalMode();
+char * get_current_dir();
+void clr_screen();
+void change_directory_display(int);
 
 struct dir_info
 {
@@ -29,6 +35,35 @@ int is_current_dir_in_delete_path(string dir_name)
 	return 0;
 }
 
+void search_file_in_dir(char * cd, string file_name)
+{
+	vector<struct dir_info> dirs = get_dir_info(cd);
+	int n = dirs.size();
+	for(int i=0; i<n; i++)
+	{
+		string curr_dir = cd;
+		curr_dir+='/';
+		struct dir_info dir = dirs[i];
+		string name = dir.name;
+		if(name.compare(".") && name.compare(".."))
+		{
+			string e_name = curr_dir.append(name);
+			char * entry_name = convert_string_to_char(e_name);
+			if(is_directory(entry_name))
+			{
+				search_file_in_dir(entry_name,file_name);
+			}
+			else
+			{
+				if(!name.compare(file_name))
+				{
+					cout<<e_name<<endl;
+				}
+			}
+		}
+		
+	}
+}
 void remove_directory_contents(char * dir_name)
 {
 	vector<struct dir_info> dirs = get_dir_info(dir_name);
@@ -200,5 +235,29 @@ void exec_command(string cmd)
 		string temp2 = root_dir;
 		new_name = temp2.append(new_name);
 		rename(convert_string_to_char(old_name),convert_string_to_char(new_name));
+	}
+	if(!op.compare("search"))
+	{
+		string file_name = cmd_split[1];
+		string cwd = getcwd(NULL,100*sizeof(char));
+		clr_screen();
+		search_file_in_dir(convert_string_to_char(cwd),file_name);
+		setNonCanonicalMode();
+		char op = getchar();
+		if(op==10)
+		{
+			change_dir(get_current_dir());
+			change_directory_display(NORMAL_MODE);
+		}
+		else if(op == '\033')
+		{
+			getchar();
+			char c = getchar();
+			if(c==100)
+			{
+				change_dir(get_current_dir());
+				change_directory_display(NORMAL_MODE);
+			}
+		}
 	}
 }
