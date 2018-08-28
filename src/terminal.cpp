@@ -10,6 +10,7 @@ vector<struct dir_info> get_dir_info();
 void exec_command(string);
 void change_dir(const char *);
 void traverse(char);
+string get_root_dir();
 
 struct dir_info
 {
@@ -194,6 +195,8 @@ int process_key_stroke(int ks)
 {
 	struct dir_info di;
 	char * t;
+	string rd;
+	char * e_rd;
 	switch(ks)
 	{
 		case 10:
@@ -216,6 +219,12 @@ int process_key_stroke(int ks)
 			break;	
 		case 100:
 			traverse('d');
+			change_directory_display(NORMAL_MODE);
+			break;
+		case 104:
+			rd = get_root_dir();
+			e_rd = convert_string_to_char(rd);
+			change_dir(e_rd);
 			change_directory_display(NORMAL_MODE);
 			break;
 		case 113:
