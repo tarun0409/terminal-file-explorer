@@ -35,6 +35,39 @@ int is_current_dir_in_delete_path(string dir_name)
 	return 0;
 }
 
+void print_dump(char * cwd, FILE * fptr)
+{
+	vector<struct dir_info> dirs = get_dir_info(cwd);
+	int n = dirs.size();
+	fprintf(fptr,"%s\n\n",cwd);
+	for(int i=0; i<n; i++)
+	{
+		struct dir_info dir = dirs[i];
+		string name = dir.name;
+		if(name.compare(".") && name.compare(".."))
+		{
+			fprintf(fptr,"%s\t",convert_string_to_char(name));
+		}
+	}
+	fprintf(fptr,"\n\n\n");
+	for(int i=0; i<n; i++)
+	{
+		struct dir_info dir = dirs[i];
+		string name = dir.name;
+		if(name.compare(".") && name.compare(".."))
+		{
+			string cd = cwd;
+			cd+='/';
+			string e_name = cd.append(name);
+			char * entry_name = convert_string_to_char(e_name);
+			if(is_directory(entry_name))
+			{
+				print_dump(entry_name,fptr);
+			}
+		}
+	}
+}
+
 void search_file_in_dir(char * cd, string file_name)
 {
 	vector<struct dir_info> dirs = get_dir_info(cd);
@@ -259,5 +292,17 @@ void exec_command(string cmd)
 				change_directory_display(NORMAL_MODE);
 			}
 		}
+	}
+	if(!op.compare("snapshot"))
+	{
+		string dir_name = cmd_split[1];
+		string root_dir = get_root_dir();
+		dir_name = root_dir.append(dir_name);
+		string file_name = cmd_split[2];
+		root_dir = get_root_dir();
+		file_name = root_dir.append(file_name);
+		FILE *fptr = fopen(convert_string_to_char(file_name),"w+");
+		print_dump(convert_string_to_char(dir_name), fptr);
+		fclose(fptr);
 	}
 }

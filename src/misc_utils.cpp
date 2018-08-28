@@ -100,25 +100,25 @@ string convert_bytes_to_readable(size_t bytes)
 		case 1:
 			sprintf(buff,"%0.2fKB",output);
 			break;
-		case 3:
+		case 2:
 			sprintf(buff,"%0.2fMB",output);
 			break;
-		case 4:
+		case 3:
 			sprintf(buff,"%0.2fGB",output);
 			break;
-		case 5:
+		case 4:
 			sprintf(buff,"%0.2fTB",output);
 			break;
-		case 6:
+		case 5:
 			sprintf(buff,"%0.2fPB",output);
 			break;
-		case 7:
+		case 6:
 			sprintf(buff,"%0.2fEB",output);
 			break;
-		case 8:
+		case 7:
 			sprintf(buff,"%0.2fZB",output);
 			break;
-		case 9:
+		case 8:
 			sprintf(buff,"%0.2fYB",output);
 			break;
 		default:
