@@ -1,5 +1,8 @@
 #include "../headers/default_headers.h"
 #include "../headers/syscalls.h"
+
+string get_root_dir();
+
 string convert_unix_time(time_t t)
 {
 	struct tm *tim = localtime(&t);
@@ -79,6 +82,44 @@ vector<string> split(string str)
 		ret_str_vec.push_back(my_string);
 	}
 	return ret_str_vec;
+}
+
+string get_file_name_from_path(string path)
+{
+	int n = path.length();
+	string mystr = "";
+	for(int i=0; i<n; i++)
+	{
+		char c = path[i];
+		if(c=='/')
+		{
+			mystr = "";
+		}
+		else
+		{
+			mystr+=c;
+		}
+	}
+	return mystr;
+}
+
+string get_absolute_path(string path_str)
+{
+	string root_dir = get_root_dir();
+	if(path_str.length()==0)
+	{
+		return root_dir;
+	}
+	char f = path_str[0];
+	if(f=='/')
+	{
+		path_str = root_dir.append(path_str);
+		return path_str;
+	}
+	string cd = getcwd(NULL,100*sizeof(char));
+	cd+='/';
+	path_str = cd.append(path_str);
+	return path_str;
 }
 
 string convert_bytes_to_readable(size_t bytes)

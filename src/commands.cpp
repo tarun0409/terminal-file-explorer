@@ -14,6 +14,8 @@ void setNonCanonicalMode();
 char * get_current_dir();
 void clr_screen();
 void change_directory_display(int);
+string get_absolute_path(string);
+string get_file_name_from_path(string);
 
 struct dir_info
 {
@@ -131,16 +133,14 @@ void exec_command(string cmd)
 	if(!op.compare("goto"))
 	{
 		string dir_name = cmd_split[1];
-		string root_dir = get_root_dir();
-		dir_name = root_dir.append(dir_name);
+		dir_name = get_absolute_path(dir_name);
 		char * d_name = convert_string_to_char(dir_name); 
 		change_dir(d_name);
 	}
 	if(!op.compare("delete_file"))
 	{
 		string file_name = cmd_split[1];
-		string root_dir = get_root_dir();
-		file_name = root_dir.append(file_name);
+		file_name = get_absolute_path(file_name);
 		char * f_name = convert_string_to_char(file_name);
 		if(!is_directory(f_name))
 		{
@@ -151,11 +151,10 @@ void exec_command(string cmd)
 	{
 		string dir_name = cmd_split[1];
 		string root_dir = get_root_dir();
-		string temp_root_dir = root_dir;
-		dir_name = root_dir.append(dir_name);
+		dir_name = get_absolute_path(dir_name);
 		if(is_current_dir_in_delete_path(dir_name))
 		{
-			change_dir(convert_string_to_char(temp_root_dir));
+			change_dir(convert_string_to_char(root_dir));
 		}
 		char * d_name = convert_string_to_char(dir_name);
 		if(is_directory(d_name))
@@ -176,8 +175,7 @@ void exec_command(string cmd)
 		}
 		else
 		{
-			string root_dir = get_root_dir();
-			dir_name = root_dir.append(dir_name);
+			dir_name = get_absolute_path(dir_name);
 			dir_name+='/';
 			file_name = dir_name.append(file_name);
 		}
@@ -196,8 +194,7 @@ void exec_command(string cmd)
 		}
 		else
 		{
-			string root_dir = get_root_dir();
-			dir_name = root_dir.append(dir_name);
+			dir_name = get_absolute_path(dir_name);
 			dir_name+='/';
 			fold_name = dir_name.append(fold_name);
 		}
@@ -211,13 +208,13 @@ void exec_command(string cmd)
 		for(int i=1; i<(n-1); i++)
 		{
 			string dir_name = cmd_split[n-1];
-			string root_dir = get_root_dir();
-			dir_name = root_dir.append(dir_name);
+			dir_name = get_absolute_path(dir_name);
 			dir_name+='/';
 			string file_name = cmd_split[i];
+			file_name = get_absolute_path(file_name);
 			char out_buff[1024];
 			int r_fd = open(convert_string_to_char(file_name),O_RDONLY);
-			string new_file_name = file_name;
+			string new_file_name = get_file_name_from_path(file_name);
 			new_file_name = dir_name.append(new_file_name);
 			mode_t mode = 0777 & ~umask(0);
 			int w_fd = open(convert_string_to_char(new_file_name),(O_WRONLY|O_CREAT),mode);
@@ -237,13 +234,13 @@ void exec_command(string cmd)
 		for(int i=1; i<(n-1); i++)
 		{
 			string dir_name = cmd_split[n-1];
-			string root_dir = get_root_dir();
-			dir_name = root_dir.append(dir_name);
+			dir_name = get_absolute_path(dir_name);
 			dir_name+='/';
 			string file_name = cmd_split[i];
+			file_name = get_absolute_path(file_name);
 			char out_buff[1024];
 			int r_fd = open(convert_string_to_char(file_name),O_RDONLY);
-			string new_file_name = file_name;
+			string new_file_name = get_file_name_from_path(file_name);
 			new_file_name = dir_name.append(new_file_name);
 			mode_t mode = 0777 & ~umask(0);
 			int w_fd = open(convert_string_to_char(new_file_name),(O_WRONLY|O_CREAT),mode);
@@ -261,12 +258,8 @@ void exec_command(string cmd)
 	if(!op.compare("rename"))
 	{
 		string root_dir = get_root_dir();
-		string old_name = cmd_split[1];
-		string new_name = cmd_split[2];
-		string temp1 = root_dir;
-		old_name = temp1.append(old_name);
-		string temp2 = root_dir;
-		new_name = temp2.append(new_name);
+		string old_name = get_absolute_path(cmd_split[1]);
+		string new_name = get_absolute_path(cmd_split[2]);
 		rename(convert_string_to_char(old_name),convert_string_to_char(new_name));
 	}
 	if(!op.compare("search"))
@@ -296,11 +289,9 @@ void exec_command(string cmd)
 	if(!op.compare("snapshot"))
 	{
 		string dir_name = cmd_split[1];
-		string root_dir = get_root_dir();
-		dir_name = root_dir.append(dir_name);
+		dir_name = get_absolute_path(dir_name);
 		string file_name = cmd_split[2];
-		root_dir = get_root_dir();
-		file_name = root_dir.append(file_name);
+		file_name = get_absolute_path(file_name);
 		FILE *fptr = fopen(convert_string_to_char(file_name),"w+");
 		print_dump(convert_string_to_char(dir_name), fptr);
 		fclose(fptr);
