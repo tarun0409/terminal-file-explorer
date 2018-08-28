@@ -206,27 +206,17 @@ void exec_command(string cmd)
 	{
 		int n = cmd_split.size();
 		for(int i=1; i<(n-1); i++)
-		{
+		{	
 			string dir_name = cmd_split[n-1];
 			dir_name = get_absolute_path(dir_name);
 			dir_name+='/';
 			string file_name = cmd_split[i];
 			file_name = get_absolute_path(file_name);
-			char out_buff[1024];
-			int r_fd = open(convert_string_to_char(file_name),O_RDONLY);
 			string new_file_name = get_file_name_from_path(file_name);
 			new_file_name = dir_name.append(new_file_name);
-			mode_t mode = 0777 & ~umask(0);
-			int w_fd = open(convert_string_to_char(new_file_name),(O_WRONLY|O_CREAT),mode);
-			int r_size = (read(r_fd,out_buff,sizeof(out_buff)));
-			while(r_size > 0)
-			{
-				write(w_fd,out_buff,r_size);
-				r_size = (read(r_fd,out_buff,sizeof(out_buff)));
-			}
-			close(r_fd);
-			close(w_fd);
+			link(convert_string_to_char(file_name),convert_string_to_char(new_file_name));
 		}
+		
 	}
 	if(!op.compare("move"))
 	{
@@ -238,22 +228,12 @@ void exec_command(string cmd)
 			dir_name+='/';
 			string file_name = cmd_split[i];
 			file_name = get_absolute_path(file_name);
-			char out_buff[1024];
-			int r_fd = open(convert_string_to_char(file_name),O_RDONLY);
 			string new_file_name = get_file_name_from_path(file_name);
 			new_file_name = dir_name.append(new_file_name);
-			mode_t mode = 0777 & ~umask(0);
-			int w_fd = open(convert_string_to_char(new_file_name),(O_WRONLY|O_CREAT),mode);
-			int r_size = (read(r_fd,out_buff,sizeof(out_buff)));
-			while(r_size > 0)
-			{
-				write(w_fd,out_buff,r_size);
-				r_size = (read(r_fd,out_buff,sizeof(out_buff)));
-			}
-			close(r_fd);
-			close(w_fd);
+			link(convert_string_to_char(file_name),convert_string_to_char(new_file_name));
 			unlink(convert_string_to_char(file_name));
 		}
+		
 	}
 	if(!op.compare("rename"))
 	{
