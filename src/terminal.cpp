@@ -11,6 +11,7 @@ void exec_command(string);
 void change_dir(const char *);
 void traverse(char);
 string get_root_dir();
+int is_directory(char *);
 
 struct dir_info
 {
@@ -202,7 +203,18 @@ int process_key_stroke(int ks)
 		case 10:
 			di = directories[curr_pos-1];
 			t = convert_string_to_char(di.name);
-			change_dir(t);
+			if(is_directory(t))
+			{
+				change_dir(t);
+			}
+			else
+			{
+				if(fork()==0)
+				{
+					execl("/usr/bin/xdg-open", "xdg-open", t, (char *)0);
+					exit(1);
+				}
+			}
 			change_directory_display(NORMAL_MODE);
 			break;
 		case 58:
