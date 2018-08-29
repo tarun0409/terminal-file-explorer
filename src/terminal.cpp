@@ -13,6 +13,8 @@ void traverse(char);
 string get_root_dir();
 int is_directory(char *);
 
+string cmd_buffer = "";
+
 struct dir_info
 {
 	string name;
@@ -123,6 +125,7 @@ void list_directories(int mode)
 	else
 	{
 			move_cursor((rows-n-1),0);
+			cout<<cmd_buffer;
 	}
 }
 
@@ -176,18 +179,35 @@ void command_mode()
 		{
 			quit = 1;
 		}
+		else if(op==10)
+		{
+			exec_command(cmd_buffer);
+			cmd_buffer = "";
+			change_directory_display(COMMAND_MODE);
+		}
+		else if(op==127)
+		{
+			int cl = cmd_buffer.length();
+			if(cl>0)
+			{
+				cmd_buffer = cmd_buffer.substr(0,(cl-1));
+				change_directory_display(COMMAND_MODE);
+			}
+		}
 		else
 		{
-			string cmd = "";
-			string temp_cmd = "";
-			cout<<op;
-			cmd+=op;
-			setCanonicalMode();
-			getline(cin,temp_cmd);
-			cmd.append(temp_cmd);
-			exec_command(cmd);
+			cmd_buffer+=op;
 			change_directory_display(COMMAND_MODE);
-			setNonCanonicalMode();
+			//string cmd = "";
+			//string temp_cmd = "";
+			//cout<<op;
+			//cmd+=op;
+			//setCanonicalMode();
+			//getline(cin,temp_cmd);
+			//cmd.append(temp_cmd);
+			//exec_command(cmd);
+			//change_directory_display(COMMAND_MODE);
+			//setNonCanonicalMode();
 		}
 	}
 }
