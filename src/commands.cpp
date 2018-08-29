@@ -37,6 +37,62 @@ int is_current_dir_in_delete_path(string dir_name)
 	return 0;
 }
 
+void copy_file(string source_file, string dest_dir)
+{
+	struct stat sbuff;
+	lstat(convert_string_to_char(source_file),&sbuff);
+	mode_t mode = sbuff.st_mode;
+	string dest_file = get_file_name_from_path(source_file);
+	dest_dir+='/';
+	dest_file = dest_dir.append(dest_file);
+	char * sf = convert_string_to_char(source_file);
+	char * df = convert_string_to_char(dest_file);
+	int r_fd = open(sf,O_RDONLY);
+	int w_fd = open(df,(O_WRONLY|O_CREAT),mode);
+	char out_buff[1024];
+	int r_size = (read(r_fd,out_buff,sizeof(out_buff)));
+	while(r_size > 0)
+	{
+		write(w_fd,out_buff,r_size);
+		r_size = (read(r_fd,out_buff,sizeof(out_buff)));
+	}
+	close(r_fd);
+	close(w_fd);
+}
+
+void recursive_copy(string source_dir, string dest_dir)
+{
+	struct stat sbuff;
+	lstat(convert_string_to_char(source_dir),&sbuff);
+	mode_t mode = sbuff.st_mode;
+	string dir_name = get_file_name_from_path(source_dir);
+	dest_dir += '/';
+	dir_name = dest_dir.append(dir_name);
+	mkdir(convert_string_to_char(dir_name),mode);
+	vector<struct dir_info> di = get_dir_info(convert_string_to_char(source_dir));
+	for(int i=0; i<di.size(); i++)
+	{
+		string entry_name = di[i].name;
+		if(!entry_name.compare(".") || !entry_name.compare(".."))
+		{
+			continue;
+		}
+		string sd = source_dir;
+		sd += '/';
+		entry_name = sd.append(entry_name);
+		if(!is_directory(convert_string_to_char(entry_name)))
+		{
+			copy_file(entry_name,dir_name);
+		}
+		else
+		{
+			recursive_copy(entry_name,dir_name);
+		}
+	}
+	
+}
+
+
 void print_dump(char * cwd, FILE * fptr)
 {
 	vector<struct dir_info> dirs = get_dir_info(cwd);
@@ -209,12 +265,17 @@ void exec_command(string cmd)
 		{	
 			string dir_name = cmd_split[n-1];
 			dir_name = get_absolute_path(dir_name);
-			dir_name+='/';
-			string file_name = cmd_split[i];
-			file_name = get_absolute_path(file_name);
-			string new_file_name = get_file_name_from_path(file_name);
-			new_file_name = dir_name.append(new_file_name);
-			link(convert_string_to_char(file_name),convert_string_to_char(new_file_name));
+			string entry_name = cmd_split[i];
+			entry_name = get_absolute_path(entry_name);
+			if(!is_directory(convert_string_to_char(entry_name)))
+			{
+				copy_file(entry_name,dir_name);
+			}
+			else
+			{
+				recursive_copy(entry_name,dir_name);
+			}
+			
 		}
 		
 	}

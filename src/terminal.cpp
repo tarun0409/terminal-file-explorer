@@ -198,16 +198,6 @@ void command_mode()
 		{
 			cmd_buffer+=op;
 			change_directory_display(COMMAND_MODE);
-			//string cmd = "";
-			//string temp_cmd = "";
-			//cout<<op;
-			//cmd+=op;
-			//setCanonicalMode();
-			//getline(cin,temp_cmd);
-			//cmd.append(temp_cmd);
-			//exec_command(cmd);
-			//change_directory_display(COMMAND_MODE);
-			//setNonCanonicalMode();
 		}
 	}
 }
