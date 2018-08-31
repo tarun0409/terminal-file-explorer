@@ -164,7 +164,7 @@ void list_directories(int mode)
 	}
 	else
 	{
-			struct dir_info_max_sizes dims = get_dir_info_max_sizes();
+		struct dir_info_max_sizes dims = get_dir_info_max_sizes();
 		for(int i=win_left; i<=win_right; i++)
 		{
 			struct dir_info t_d = directories[i];
@@ -184,7 +184,9 @@ void list_directories(int mode)
 			{
 				cout<<errors[i]<<endl;
 			}
-			cout<<endl<<":"<<cmd_buffer;
+			move_cursor((rows-no_of_lines-4),1);
+			move_cursor((rows-no_of_lines-1),0);
+			cout<<":"<<cmd_buffer;
 	}
 }
 
