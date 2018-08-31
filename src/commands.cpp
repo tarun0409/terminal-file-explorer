@@ -68,7 +68,7 @@ vector<string> copy_file(string source_file, string dest_dir)
 	return errors;
 }
 
-vector<string>  recursive_copy(string source_dir, string dest_dir, vector<string> errors)
+vector<string> recursive_copy(string source_dir, string dest_dir, vector<string> errors)
 {
 	struct stat sbuff;
 	lstat(convert_string_to_char(source_dir),&sbuff);
@@ -108,6 +108,7 @@ vector<string>  recursive_copy(string source_dir, string dest_dir, vector<string
 			errors = recursive_copy(entry_name,dir_name,errors);
 		}
 	}
+	return errors;
 	
 }
 
@@ -200,7 +201,7 @@ void remove_directory_contents(char * dir_name)
 
 vector<string> exec_command(string cmd)
 {
-	vector<string> info;
+	vector<string> errors;
 	vector<string> cmd_split = split(cmd);
 	string op = cmd_split[0];
 	if(!op.compare("goto"))
@@ -208,6 +209,12 @@ vector<string> exec_command(string cmd)
 		string dir_name = cmd_split[1];
 		dir_name = get_absolute_path(dir_name);
 		char * d_name = convert_string_to_char(dir_name); 
+		if(access(d_name,F_OK)==-1)
+		{
+			string err = dir_name.append(" does not exist");
+			errors.push_back(err);
+			return errors;
+		}
 		change_dir(d_name);
 	}
 	if(!op.compare("delete_file"))
@@ -215,6 +222,12 @@ vector<string> exec_command(string cmd)
 		string file_name = cmd_split[1];
 		file_name = get_absolute_path(file_name);
 		char * f_name = convert_string_to_char(file_name);
+		if(access(f_name,F_OK)==-1)
+		{
+			string err = file_name.append(" does not exist");
+			errors.push_back(err);
+			return errors;
+		}
 		if(!is_directory(f_name))
 		{
 			unlink(f_name);
@@ -230,6 +243,12 @@ vector<string> exec_command(string cmd)
 			change_dir(convert_string_to_char(root_dir));
 		}
 		char * d_name = convert_string_to_char(dir_name);
+		if(access(d_name,F_OK)==-1)
+		{
+			string err = dir_name.append(" does not exist");
+			errors.push_back(err);
+			return errors;
+		}
 		if(is_directory(d_name))
 		{
 			remove_directory_contents(d_name);
@@ -249,11 +268,25 @@ vector<string> exec_command(string cmd)
 		else
 		{
 			dir_name = get_absolute_path(dir_name);
+			if(access(convert_string_to_char(dir_name),F_OK)==-1)
+			{
+				string err = dir_name.append(" does not exist");
+				errors.push_back(err);
+				return errors;
+			}
 			dir_name+='/';
 			file_name = dir_name.append(file_name);
 		}
-		FILE * f = fopen(convert_string_to_char(file_name),"w+");
+		char * df = convert_string_to_char(file_name);
+		if(access(df,F_OK)!=-1)
+		{	
+			string err = file_name.append(" already exists");
+			errors.push_back(err);
+			return errors;
+		}
+		FILE * f = fopen(df,"w+");
 		fclose(f);
+		return errors;
 	}
 	if(!op.compare("create_dir"))
 	{
@@ -268,8 +301,21 @@ vector<string> exec_command(string cmd)
 		else
 		{
 			dir_name = get_absolute_path(dir_name);
+			if(access(convert_string_to_char(dir_name),F_OK)==-1)
+			{
+				string err = dir_name.append(" does not exist");
+				errors.push_back(err);
+				return errors;
+			}
 			dir_name+='/';
 			fold_name = dir_name.append(fold_name);
+		}
+		char * dd = convert_string_to_char(fold_name);
+		if(access(dd,F_OK)!=-1)
+		{	
+			string err = fold_name.append(" already exists");
+			errors.push_back(err);
+			return errors;
 		}
 		mode_t mode = 0777 & ~umask(0);
 		mode = mode | S_IWUSR | S_IXUSR;
@@ -278,13 +324,24 @@ vector<string> exec_command(string cmd)
 	if(!op.compare("copy"))
 	{
 		int n = cmd_split.size();
-		vector<string> errors;
 		for(int i=1; i<(n-1); i++)
 		{	
 			string dir_name = cmd_split[n-1];
 			dir_name = get_absolute_path(dir_name);
+			if(access(convert_string_to_char(dir_name),F_OK)==-1)
+			{	
+				string err = dir_name.append(" does not exist");
+				errors.push_back(err);
+				return errors;
+			}
 			string entry_name = cmd_split[i];
 			entry_name = get_absolute_path(entry_name);
+			if(access(convert_string_to_char(entry_name),F_OK)==-1)
+			{	
+				string err = entry_name.append(" does not exist");
+				errors.push_back(err);
+				return errors;
+			}
 			if(!is_directory(convert_string_to_char(entry_name)))
 			{
 				errors = copy_file(entry_name,dir_name);
@@ -294,31 +351,64 @@ vector<string> exec_command(string cmd)
 				errors = recursive_copy(entry_name,dir_name,errors);
 			}
 		}
-		return errors;
-		
 	}
 	if(!op.compare("move"))
 	{
 		int n = cmd_split.size();
 		for(int i=1; i<(n-1); i++)
-		{
+		{	
 			string dir_name = cmd_split[n-1];
 			dir_name = get_absolute_path(dir_name);
-			dir_name+='/';
-			string file_name = cmd_split[i];
-			file_name = get_absolute_path(file_name);
-			string new_file_name = get_file_name_from_path(file_name);
-			new_file_name = dir_name.append(new_file_name);
-			link(convert_string_to_char(file_name),convert_string_to_char(new_file_name));
-			unlink(convert_string_to_char(file_name));
+			if(access(convert_string_to_char(dir_name),F_OK)==-1)
+			{	
+				string err = dir_name.append(" does not exist");
+				errors.push_back(err);
+				return errors;
+			}
+			string entry_name = cmd_split[i];
+			entry_name = get_absolute_path(entry_name);
+			if(access(convert_string_to_char(entry_name),F_OK)==-1)
+			{	
+				string err = entry_name.append(" does not exist");
+				errors.push_back(err);
+				return errors;
+			}
+			if(!is_directory(convert_string_to_char(entry_name)))
+			{
+				errors = copy_file(entry_name,dir_name);
+				if(errors.empty())
+				{
+					unlink(convert_string_to_char(entry_name));
+				}
+			}
+			else
+			{
+				errors = recursive_copy(entry_name,dir_name,errors);
+				if(errors.empty())
+				{
+					remove_directory_contents(convert_string_to_char(entry_name));
+					rmdir(convert_string_to_char(entry_name));
+				}
+			}
 		}
-		
 	}
 	if(!op.compare("rename"))
 	{
 		string root_dir = get_root_dir();
 		string old_name = get_absolute_path(cmd_split[1]);
+		if(access(convert_string_to_char(old_name),F_OK)==-1)
+		{	
+			string err = old_name.append(" does not exist");
+			errors.push_back(err);
+			return errors;
+		}
 		string new_name = get_absolute_path(cmd_split[2]);
+		if(access(convert_string_to_char(new_name),F_OK)!=-1)
+		{	
+			string err = new_name.append(" already exists");
+			errors.push_back(err);
+			return errors;
+		}
 		rename(convert_string_to_char(old_name),convert_string_to_char(new_name));
 	}
 	if(!op.compare("search"))
@@ -340,5 +430,5 @@ vector<string> exec_command(string cmd)
 		print_dump(convert_string_to_char(dir_name), fptr);
 		fclose(fptr);
 	}
-	return info;
+	return errors;
 }
