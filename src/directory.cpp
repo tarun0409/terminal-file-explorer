@@ -131,7 +131,7 @@ void change_dir(const char * dir_name)
 	int st = go_to(dir_name);
 	if(!st)
 	{
-		char * cwd = getcwd(NULL,100*sizeof(char));
+		char * cwd = getcwd(NULL,255*sizeof(char));
 		if(trace.empty())
 		{
 			trace.push_back(cwd);

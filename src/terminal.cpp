@@ -1,7 +1,7 @@
 #include "../headers/default_headers.h"
 #include "../headers/syscalls.h"
 
-#define clear() printf("\033[H\033[J")
+#define clr_scr() printf("\033[H\033[J")
 #define COMMAND_MODE 1
 #define NORMAL_MODE 0
 
@@ -42,13 +42,16 @@ struct dir_list
 int curr_pos;
 int n_dir;
 vector<struct dir_info> directories;
+vector<int> entry_extra_lines;
+int curr_index;
+int curr_pos_buff;
 int win_left;
 int win_right;
 int rows;
 
 void clr_screen()
 {
-	clear();
+	clr_scr();
 }
 
 struct winsize get_window_size()
@@ -89,18 +92,41 @@ struct dir_info_max_sizes get_dir_info_max_sizes()
 	}
 	return dims;
 }
-
+void set_entry_sizes()
+{
+	struct winsize ws = get_window_size();
+	int col_size = ws.ws_col;
+	int l = 0;
+	entry_extra_lines.clear();
+	for(int i=0; i<n_dir; i++)
+	{
+		struct dir_info t_d = directories[i];
+		int size = 0;
+		size = (t_d.name).length() + (t_d.mode).length() + (t_d.user_name).length() + (t_d.size).length() + (t_d.m_time).length() + 16;
+		int extra_lines = size/col_size;
+		entry_extra_lines.push_back(extra_lines);
+	}
+}
+int get_no_of_lines()
+{
+	int l = 0;
+	for(int i=win_left; i<=win_right; i++)
+	{
+		l+=(entry_extra_lines[i] + 1);
+	}
+	return l;
+}
 void list_directories(int mode)
 {
-	int n = win_right - win_left + 1;
-	if(curr_pos>n)
+	int no_of_lines = get_no_of_lines();
+	if(curr_pos>no_of_lines)
 	{
 		if((win_right+1)<n_dir)
 		{
 			win_left++;
 			win_right++;
 		}
-		curr_pos = n;
+		curr_pos = no_of_lines;
 	}
 	if(curr_pos<1)
 	{
@@ -116,15 +142,16 @@ void list_directories(int mode)
 	for(int i=win_left; i<=win_right; i++)
 	{
 		struct dir_info t_d = directories[i];
-		cout<<left<<setw((dims.mode) + 4)<<(t_d.mode)<<setw((dims.user_name) + 4)<<(t_d.user_name)<<setw((dims.size) + 4)<<(t_d.size)<<setw((dims.m_time) + 4)<<(t_d.m_time)<<setw((dims.name) + 4)<<(t_d.name)<<endl;
+		cout<<left<<setw((dims.mode) + 4)<<(t_d.mode)<<setw((dims.user_name) + 4)<<(t_d.user_name)<<setw((dims.size) + 4)<<(t_d.size)<<setw((dims.m_time) + 4)<<(t_d.m_time)<<(t_d.name)<<endl;
 	}
+	no_of_lines = get_no_of_lines();
 	if(mode==NORMAL_MODE)
 	{
-			move_cursor((n-curr_pos+1),1);
+			move_cursor((no_of_lines-curr_pos+1),1);
 	}
 	else
 	{
-			move_cursor((rows-n-1),0);
+			move_cursor((rows-no_of_lines-1),0);
 			cout<<cmd_buffer;
 	}
 }
@@ -136,6 +163,8 @@ void change_directory_display(int mode)
 	int n = directories.size();
 	n_dir = n;
 	curr_pos = 1;
+	curr_index = 0;
+	set_entry_sizes();
 	struct winsize ws = get_window_size();
 	rows = ws.ws_row;
 	win_left = 0;
@@ -148,6 +177,7 @@ void change_directory_display(int mode)
 		win_right = (rows-3);
 	}
 	list_directories(mode);
+	curr_pos_buff = entry_extra_lines[0];
 }
 
 void setNonCanonicalMode()
@@ -208,10 +238,12 @@ int process_key_stroke(int ks)
 	char * t;
 	string rd;
 	char * e_rd;
+	int limit;
+	int prev_ci;
 	switch(ks)
 	{
 		case 10:
-			di = directories[curr_pos-1];
+			di = directories[curr_index];
 			t = convert_string_to_char(di.name);
 			if(is_directory(t))
 			{
@@ -253,10 +285,32 @@ int process_key_stroke(int ks)
 			return 1;
 		case 115:
 			curr_pos++;
+			if(curr_index!=(n_dir-1) && curr_pos_buff<=0)
+			{
+				curr_index++;
+				if(curr_index>=n_dir)
+				{
+					curr_index = (n_dir-1);
+				}
+				curr_pos_buff = entry_extra_lines[curr_index];
+			}
+			else if(curr_pos_buff>0)
+			{
+				curr_pos_buff--;
+			}
 			list_directories(NORMAL_MODE);
 			break;
 		case 119:
 			curr_pos--;
+			if((curr_index!=0) && (curr_pos_buff>=entry_extra_lines[curr_index]))
+			{
+				curr_index--;
+				curr_pos_buff = 0;
+			}
+			else if(curr_pos_buff<entry_extra_lines[curr_index])
+			{
+				curr_pos_buff++;
+			}
 			list_directories(NORMAL_MODE);
 			break;
 	}
