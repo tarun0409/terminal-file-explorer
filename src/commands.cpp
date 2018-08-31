@@ -126,7 +126,7 @@ void print_dump(char * cwd, FILE * fptr)
 	}
 }
 
-void search_file_in_dir(char * cd, string file_name)
+vector<string> search_file_in_dir(char * cd, string file_name, vector<string> search_results)
 {
 	vector<struct dir_info> dirs = get_dir_info(cd);
 	int n = dirs.size();
@@ -140,20 +140,17 @@ void search_file_in_dir(char * cd, string file_name)
 		{
 			string e_name = curr_dir.append(name);
 			char * entry_name = convert_string_to_char(e_name);
+			if(!name.compare(file_name))
+			{
+					search_results.push_back(e_name);
+			}
 			if(is_directory(entry_name))
 			{
-				search_file_in_dir(entry_name,file_name);
-			}
-			else
-			{
-				if(!name.compare(file_name))
-				{
-					cout<<e_name<<endl;
-				}
+				search_results = search_file_in_dir(entry_name,file_name,search_results);
 			}
 		}
-		
 	}
+	return search_results;
 }
 void remove_directory_contents(char * dir_name)
 {
@@ -182,8 +179,9 @@ void remove_directory_contents(char * dir_name)
 	}
 }
 
-void exec_command(string cmd)
+vector<string> exec_command(string cmd)
 {
+	vector<string> info;
 	vector<string> cmd_split = split(cmd);
 	string op = cmd_split[0];
 	if(!op.compare("goto"))
@@ -307,25 +305,27 @@ void exec_command(string cmd)
 	{
 		string file_name = cmd_split[1];
 		string cwd = getcwd(NULL,255*sizeof(char));
+		vector<string> search_results;
 		clr_screen();
-		search_file_in_dir(convert_string_to_char(cwd),file_name);
-		setNonCanonicalMode();
-		char op = getchar();
-		if(op==127)
-		{
-			change_dir(get_current_dir());
-			change_directory_display(NORMAL_MODE);
-		}
-		else if(op == '\033')
-		{
-			getchar();
-			char c = getchar();
-			if(c==100)
-			{
-				change_dir(get_current_dir());
-				change_directory_display(NORMAL_MODE);
-			}
-		}
+		search_results = search_file_in_dir(convert_string_to_char(cwd),file_name,search_results);
+		//setNonCanonicalMode();
+		//char op = getchar();
+		//if(op==127)
+		//{
+			//change_dir(get_current_dir());
+			//change_directory_display(NORMAL_MODE);
+		//}
+		//else if(op == '\033')
+		//{
+			//getchar();
+			//char c = getchar();
+			//if(c==100)
+			//{
+				//change_dir(get_current_dir());
+				//change_directory_display(NORMAL_MODE);
+			//}
+		//}
+		return search_results;
 	}
 	if(!op.compare("snapshot"))
 	{
@@ -337,4 +337,5 @@ void exec_command(string cmd)
 		print_dump(convert_string_to_char(dir_name), fptr);
 		fclose(fptr);
 	}
+	return info;
 }

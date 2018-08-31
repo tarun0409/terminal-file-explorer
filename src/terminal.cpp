@@ -2,16 +2,18 @@
 #include "../headers/syscalls.h"
 
 #define clr_scr() printf("\033[H\033[J")
+#define SEARCH_MODE 2
 #define COMMAND_MODE 1
 #define NORMAL_MODE 0
 
 char * convert_string_to_char(string);
 vector<struct dir_info> get_dir_info();
-void exec_command(string);
+vector<string> exec_command(string);
 void change_dir(const char *);
 void traverse(char);
 string get_root_dir();
 int is_directory(char *);
+int process_key_stroke(int,int);
 
 struct dir_info
 {
@@ -47,6 +49,7 @@ int win_left;
 int win_right;
 int rows;
 string cmd_buffer = "";
+vector<string> search_results;
 
 void clr_screen()
 {
@@ -91,19 +94,32 @@ struct dir_info_max_sizes get_dir_info_max_sizes()
 	}
 	return dims;
 }
-void set_entry_sizes()
+void set_entry_sizes(int mode)
 {
 	struct winsize ws = get_window_size();
 	int col_size = ws.ws_col;
 	int l = 0;
 	entry_extra_lines.clear();
-	for(int i=0; i<n_dir; i++)
+	if(mode==SEARCH_MODE)
 	{
-		struct dir_info t_d = directories[i];
-		int size = 0;
-		size = (t_d.name).length() + (t_d.mode).length() + (t_d.user_name).length() + (t_d.size).length() + (t_d.m_time).length() + 16;
-		int extra_lines = size/col_size;
-		entry_extra_lines.push_back(extra_lines);
+		for(int i=0; i<n_dir; i++)
+		{
+			string entry_name = search_results[i];
+			int s = entry_name.length();
+			int extra_lines = s/col_size;
+			entry_extra_lines.push_back(extra_lines);
+		}
+	}
+	else
+	{
+		for(int i=0; i<n_dir; i++)
+		{
+			struct dir_info t_d = directories[i];
+			int size = 0;
+			size = (t_d.name).length() + (t_d.mode).length() + (t_d.user_name).length() + (t_d.size).length() + (t_d.m_time).length() + 16;
+			int extra_lines = size/col_size;
+			entry_extra_lines.push_back(extra_lines);
+		}
 	}
 }
 int get_no_of_lines()
@@ -137,14 +153,24 @@ void list_directories(int mode)
 		curr_pos = 1;
 	}
 	clr_screen();
-	struct dir_info_max_sizes dims = get_dir_info_max_sizes();
-	for(int i=win_left; i<=win_right; i++)
+	if(mode==SEARCH_MODE)
 	{
-		struct dir_info t_d = directories[i];
-		cout<<left<<setw((dims.mode) + 4)<<(t_d.mode)<<setw((dims.user_name) + 4)<<(t_d.user_name)<<setw((dims.size) + 4)<<(t_d.size)<<setw((dims.m_time) + 4)<<(t_d.m_time)<<(t_d.name)<<endl;
+		for(int i=win_left; i<=win_right; i++)
+		{
+			cout<<search_results[i]<<endl;
+		}
+	}
+	else
+	{
+			struct dir_info_max_sizes dims = get_dir_info_max_sizes();
+		for(int i=win_left; i<=win_right; i++)
+		{
+			struct dir_info t_d = directories[i];
+			cout<<left<<setw((dims.mode) + 4)<<(t_d.mode)<<setw((dims.user_name) + 4)<<(t_d.user_name)<<setw((dims.size) + 4)<<(t_d.size)<<setw((dims.m_time) + 4)<<(t_d.m_time)<<(t_d.name)<<endl;
+		}
 	}
 	no_of_lines = get_no_of_lines();
-	if(mode==NORMAL_MODE)
+	if(mode==NORMAL_MODE || mode == SEARCH_MODE)
 	{
 			move_cursor((no_of_lines-curr_pos+1),1);
 	}
@@ -157,19 +183,27 @@ void list_directories(int mode)
 
 void change_directory_display(int mode)
 {
-	change_dir(".");
-	directories = get_dir_info();
-	int n = directories.size();
-	n_dir = n;
-	curr_pos = 1;
-	curr_index = 0;
-	set_entry_sizes();
+	if(mode==SEARCH_MODE)
+	{
+		n_dir = search_results.size();
+		curr_pos = 1;
+		curr_index = 0;
+	}
+	else
+	{
+		change_dir(".");
+		directories = get_dir_info();
+		n_dir = directories.size();
+		curr_pos = 1;
+		curr_index = 0;
+	}
+	set_entry_sizes(mode);
 	struct winsize ws = get_window_size();
 	rows = ws.ws_row;
 	win_left = 0;
-	if(n<rows)
+	if(n_dir<rows)
 	{
-		win_right = (n-1);
+		win_right = (n_dir-1);
 	}
 	else
 	{
@@ -204,10 +238,11 @@ void setCanonicalMode()
 	tcsetattr(0,TCSANOW,&info);
 }
 
-void command_mode()
+int command_mode()
 {
 	change_directory_display(COMMAND_MODE);
 	int quit = 0;
+	int search_av = 0;
 	while(!quit)
 	{
 		char op = getchar();
@@ -217,9 +252,56 @@ void command_mode()
 		}
 		else if(op==10)
 		{
-			exec_command(cmd_buffer);
-			cmd_buffer = "";
-			change_directory_display(COMMAND_MODE);
+			vector<string> res = exec_command(cmd_buffer);
+			if(!res.empty())
+			{
+				search_results = res;
+				change_directory_display(SEARCH_MODE);
+				if(!search_results.empty())
+				{
+					char sop = 'g';
+					int q = 0;
+					while(!q)
+					{
+						sop = getchar();
+						if(sop == '\033')
+						{
+							getchar();
+							switch(getchar())
+							{
+								case 'A':
+									process_key_stroke(119,SEARCH_MODE);
+									break;
+								case 'B':
+									process_key_stroke(115,SEARCH_MODE);
+									break;
+								case 'D':
+									q = 1;
+									quit = 1;
+									break;
+							}
+						}
+						else if(sop == 127)
+						{
+							q = 1;
+							quit = 1;
+						}
+						else if(sop==10)
+						{
+							process_key_stroke(10,SEARCH_MODE);
+							search_av = 1;
+							q = 1;
+							quit = 1;
+						}
+					}
+					
+				}
+			}
+			else
+			{
+				cmd_buffer = "";
+				change_directory_display(COMMAND_MODE);
+			}
 		}
 		else if(op==127)
 		{
@@ -237,9 +319,10 @@ void command_mode()
 		}
 	}
 	cmd_buffer = "";
+	return search_av;
 }
 
-int process_key_stroke(int ks)
+int process_key_stroke(int ks,int mode)
 {
 	struct dir_info di;
 	char * t;
@@ -247,11 +330,19 @@ int process_key_stroke(int ks)
 	char * e_rd;
 	int limit;
 	int prev_ci;
+	int search_av;
 	switch(ks)
 	{
 		case 10:
-			di = directories[curr_index];
-			t = convert_string_to_char(di.name);
+			if(mode==NORMAL_MODE)
+			{
+				di = directories[curr_index];
+				t = convert_string_to_char(di.name);
+			}
+			else if(mode==SEARCH_MODE)
+			{
+				t = convert_string_to_char(search_results[curr_index]);
+			}
 			if(is_directory(t))
 			{
 				change_dir(t);
@@ -267,26 +358,29 @@ int process_key_stroke(int ks)
 			change_directory_display(NORMAL_MODE);
 			break;
 		case 58:
-			command_mode();
-			change_directory_display(NORMAL_MODE);
+			search_av = command_mode();
+			if(!search_av)
+			{
+				change_directory_display(mode);
+			}
 			break;
 		case 97:
 			traverse('a');
-			change_directory_display(NORMAL_MODE);
+			change_directory_display(mode);
 			break;
 		case 98:
 			traverse('b');
-			change_directory_display(NORMAL_MODE);
+			change_directory_display(mode);
 			break;	
 		case 100:
 			traverse('d');
-			change_directory_display(NORMAL_MODE);
+			change_directory_display(mode);
 			break;
 		case 104:
 			rd = get_root_dir();
 			e_rd = convert_string_to_char(rd);
 			change_dir(e_rd);
-			change_directory_display(NORMAL_MODE);
+			change_directory_display(mode);
 			break;
 		case 113:
 			return 1;
@@ -305,7 +399,7 @@ int process_key_stroke(int ks)
 			{
 				curr_pos_buff--;
 			}
-			list_directories(NORMAL_MODE);
+			list_directories(mode);
 			break;
 		case 119:
 			curr_pos--;
@@ -318,7 +412,7 @@ int process_key_stroke(int ks)
 			{
 				curr_pos_buff++;
 			}
-			list_directories(NORMAL_MODE);
+			list_directories(mode);
 			break;
 	}
 	return 0;
@@ -337,26 +431,26 @@ void normal_mode()
 			switch(getchar())
 			{
 				case 'A':
-					process_key_stroke(119);
+					process_key_stroke(119,NORMAL_MODE);
 					break;
 				case 'B':
-					process_key_stroke(115);
+					process_key_stroke(115,NORMAL_MODE);
 					break;
 				case 'C':
-					process_key_stroke(100);
+					process_key_stroke(100,NORMAL_MODE);
 					break;
 				case 'D':
-					process_key_stroke(97);
+					process_key_stroke(97,NORMAL_MODE);
 					break;
 			}
 		}
 		else if(op == 127)
 		{
-			process_key_stroke(98);
+			process_key_stroke(98,NORMAL_MODE);
 		}
 		else
 		{
-			quit = process_key_stroke(op);
+			quit = process_key_stroke(op,NORMAL_MODE);
 		}
 	}
 	setCanonicalMode();
