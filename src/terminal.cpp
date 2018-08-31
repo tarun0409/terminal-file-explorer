@@ -13,8 +13,6 @@ void traverse(char);
 string get_root_dir();
 int is_directory(char *);
 
-string cmd_buffer = "";
-
 struct dir_info
 {
 	string name;
@@ -48,6 +46,7 @@ int curr_pos_buff;
 int win_left;
 int win_right;
 int rows;
+string cmd_buffer = "";
 
 void clr_screen()
 {
@@ -174,7 +173,14 @@ void change_directory_display(int mode)
 	}
 	else
 	{
-		win_right = (rows-3);
+		if(mode==NORMAL_MODE)
+		{
+			win_right = (rows-2);
+		}
+		else if(mode==COMMAND_MODE)
+		{
+			win_right = (rows-4);
+		}
 	}
 	list_directories(mode);
 	curr_pos_buff = entry_extra_lines[0];
@@ -230,6 +236,7 @@ void command_mode()
 			change_directory_display(COMMAND_MODE);
 		}
 	}
+	cmd_buffer = "";
 }
 
 int process_key_stroke(int ks)

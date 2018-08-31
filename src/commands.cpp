@@ -306,12 +306,12 @@ void exec_command(string cmd)
 	if(!op.compare("search"))
 	{
 		string file_name = cmd_split[1];
-		string cwd = getcwd(NULL,100*sizeof(char));
+		string cwd = getcwd(NULL,255*sizeof(char));
 		clr_screen();
 		search_file_in_dir(convert_string_to_char(cwd),file_name);
 		setNonCanonicalMode();
 		char op = getchar();
-		if(op==10)
+		if(op==127)
 		{
 			change_dir(get_current_dir());
 			change_directory_display(NORMAL_MODE);

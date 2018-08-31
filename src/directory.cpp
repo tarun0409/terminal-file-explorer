@@ -25,6 +25,10 @@ struct dir_info
 
 int is_directory(char * d)
 {
+	if(d==NULL)
+	{
+		return 0;
+	}
 	struct stat statbuf;
 	lstat(d,&statbuf);
 	if(S_ISDIR(statbuf.st_mode))
@@ -45,8 +49,8 @@ char * get_current_dir()
 
 vector<struct dir_info> get_dir_info(const char * dir_name)
 {
-	DIR * currentDir = opendir(dir_name);
 	vector<struct dir_info> directories;
+	DIR * currentDir = opendir(dir_name);
 	if(currentDir!=NULL)
 	{
 		struct dirent * dirEntry;
@@ -59,14 +63,14 @@ vector<struct dir_info> get_dir_info(const char * dir_name)
 		for(set<string>::iterator itr = sorted_dir_names.begin(); itr!=sorted_dir_names.end(); ++itr)
 		{
 			char * entryName = convert_string_to_char(*itr);
-			struct stat * statbuf = (struct stat *)malloc(sizeof(struct stat));
-			lstat(entryName,statbuf);
+			struct stat statbuf;
+			lstat(entryName,&statbuf);
 			struct dir_info d;
 			d.name = entryName;
-			d.mode = get_string_for_mode(statbuf->st_mode);
-			d.user_name = get_user_name(statbuf->st_uid);
-			d.size = convert_bytes_to_readable(statbuf->st_size);
-			d.m_time = convert_unix_time(statbuf->st_ctime);
+			d.mode = get_string_for_mode(statbuf.st_mode);
+			d.user_name = get_user_name(statbuf.st_uid);
+			d.size = convert_bytes_to_readable(statbuf.st_size);
+			d.m_time = convert_unix_time(statbuf.st_ctime);
 			directories.push_back(d);
 		}
 	}
@@ -80,6 +84,10 @@ vector<struct dir_info> get_dir_info()
 
 int go_to(const char * name)
 {
+	if(name==NULL)
+	{
+		return 1;
+	}
 	int x = chdir(name);
 	return x;	
 }
