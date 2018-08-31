@@ -103,6 +103,37 @@ string get_file_name_from_path(string path)
 	return mystr;
 }
 
+string get_location_from_path(string path)
+{
+	int n = path.length();
+	string loc = "";
+	string buff = "";
+	for(int i=0; i<n; i++)
+	{
+		char c = path[i];
+		if(c=='/')
+		{
+			loc = loc.append(buff);
+			loc += '/';
+			buff = "";
+		}
+		else
+		{
+			buff+=c;
+		}
+	}
+	if(loc.empty())
+	{
+		loc+='/';
+	}
+	if(loc.compare("/"))
+	{
+		int l = loc.length();
+		loc = loc.substr(0,(l-1));
+	}
+	return loc;
+}
+
 string get_absolute_path(string path_str)
 {
 	string root_dir = get_root_dir();

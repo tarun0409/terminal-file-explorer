@@ -37,9 +37,10 @@ int is_current_dir_in_delete_path(string dir_name)
 	return 0;
 }
 
-void copy_file(string source_file, string dest_dir)
+vector<string> copy_file(string source_file, string dest_dir)
 {
 	struct stat sbuff;
+	vector<string> errors;
 	lstat(convert_string_to_char(source_file),&sbuff);
 	mode_t mode = sbuff.st_mode;
 	string dest_file = get_file_name_from_path(source_file);
@@ -47,6 +48,12 @@ void copy_file(string source_file, string dest_dir)
 	dest_file = dest_dir.append(dest_file);
 	char * sf = convert_string_to_char(source_file);
 	char * df = convert_string_to_char(dest_file);
+	if(access(df,F_OK)!=-1)
+	{
+		string err = dest_file.append(" already exists");
+		errors.push_back(err);
+		return errors;
+	}
 	int r_fd = open(sf,O_RDONLY);
 	int w_fd = open(df,(O_WRONLY|O_CREAT),mode);
 	char out_buff[1024];
@@ -58,9 +65,10 @@ void copy_file(string source_file, string dest_dir)
 	}
 	close(r_fd);
 	close(w_fd);
+	return errors;
 }
 
-void recursive_copy(string source_dir, string dest_dir)
+vector<string>  recursive_copy(string source_dir, string dest_dir, vector<string> errors)
 {
 	struct stat sbuff;
 	lstat(convert_string_to_char(source_dir),&sbuff);
@@ -68,6 +76,13 @@ void recursive_copy(string source_dir, string dest_dir)
 	string dir_name = get_file_name_from_path(source_dir);
 	dest_dir += '/';
 	dir_name = dest_dir.append(dir_name);
+	char * dd = convert_string_to_char(dir_name);
+	if(access(dd,F_OK)!=-1)
+	{
+		string err = dir_name.append(" already exists");
+		errors.push_back(err);
+		return errors;
+	}
 	mkdir(convert_string_to_char(dir_name),mode);
 	vector<struct dir_info> di = get_dir_info(convert_string_to_char(source_dir));
 	for(int i=0; i<di.size(); i++)
@@ -82,11 +97,15 @@ void recursive_copy(string source_dir, string dest_dir)
 		entry_name = sd.append(entry_name);
 		if(!is_directory(convert_string_to_char(entry_name)))
 		{
-			copy_file(entry_name,dir_name);
+			vector<string> errs = copy_file(entry_name,dir_name);
+			for(int k = 0; k<errs.size(); k++)
+			{
+				errors.push_back(errs[k]);
+			}
 		}
 		else
 		{
-			recursive_copy(entry_name,dir_name);
+			errors = recursive_copy(entry_name,dir_name,errors);
 		}
 	}
 	
@@ -259,6 +278,7 @@ vector<string> exec_command(string cmd)
 	if(!op.compare("copy"))
 	{
 		int n = cmd_split.size();
+		vector<string> errors;
 		for(int i=1; i<(n-1); i++)
 		{	
 			string dir_name = cmd_split[n-1];
@@ -267,14 +287,14 @@ vector<string> exec_command(string cmd)
 			entry_name = get_absolute_path(entry_name);
 			if(!is_directory(convert_string_to_char(entry_name)))
 			{
-				copy_file(entry_name,dir_name);
+				errors = copy_file(entry_name,dir_name);
 			}
 			else
 			{
-				recursive_copy(entry_name,dir_name);
+				errors = recursive_copy(entry_name,dir_name,errors);
 			}
-			
 		}
+		return errors;
 		
 	}
 	if(!op.compare("move"))
@@ -308,23 +328,6 @@ vector<string> exec_command(string cmd)
 		vector<string> search_results;
 		clr_screen();
 		search_results = search_file_in_dir(convert_string_to_char(cwd),file_name,search_results);
-		//setNonCanonicalMode();
-		//char op = getchar();
-		//if(op==127)
-		//{
-			//change_dir(get_current_dir());
-			//change_directory_display(NORMAL_MODE);
-		//}
-		//else if(op == '\033')
-		//{
-			//getchar();
-			//char c = getchar();
-			//if(c==100)
-			//{
-				//change_dir(get_current_dir());
-				//change_directory_display(NORMAL_MODE);
-			//}
-		//}
 		return search_results;
 	}
 	if(!op.compare("snapshot"))

@@ -14,6 +14,7 @@ void traverse(char);
 string get_root_dir();
 int is_directory(char *);
 int process_key_stroke(int,int);
+vector<string> split(string);
 
 struct dir_info
 {
@@ -50,6 +51,7 @@ int win_right;
 int rows;
 string cmd_buffer = "";
 vector<string> search_results;
+vector<string> errors;
 
 void clr_screen()
 {
@@ -176,8 +178,13 @@ void list_directories(int mode)
 	}
 	else
 	{
-			move_cursor((rows-no_of_lines-1),0);
-			cout<<cmd_buffer;
+			int l = errors.size();
+			move_cursor((rows-no_of_lines-l-3),0);
+			for(int i=0; i<l; i++)
+			{
+				cout<<errors[i]<<endl;
+			}
+			cout<<endl<<":"<<cmd_buffer;
 	}
 }
 
@@ -213,7 +220,8 @@ void change_directory_display(int mode)
 		}
 		else if(mode==COMMAND_MODE)
 		{
-			win_right = (rows-4);
+			int err_size = errors.size();
+			win_right = (err_size+3);
 		}
 	}
 	list_directories(mode);
@@ -253,7 +261,9 @@ int command_mode()
 		else if(op==10)
 		{
 			vector<string> res = exec_command(cmd_buffer);
-			if(!res.empty())
+			vector<string> cmd_split = split(cmd_buffer);
+			string op = cmd_split[0];
+			if((!op.compare("search")))
 			{
 				search_results = res;
 				change_directory_display(SEARCH_MODE);
@@ -296,11 +306,14 @@ int command_mode()
 					}
 					
 				}
+				search_results.clear();
 			}
 			else
 			{
+				errors = res;
 				cmd_buffer = "";
 				change_directory_display(COMMAND_MODE);
+				errors.clear();
 			}
 		}
 		else if(op==127)
