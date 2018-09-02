@@ -38,77 +38,146 @@ Command Mode:
 2. User can perform any of the following commands in the given format
 
 Command: copy
+
 Syntax: copy <source_file(s)> <destination_directory>
+
 Description: Copies multiple files or directories into the destination directory. The operation is done recursively on directories
+
 Examples:
+
 copy file1.txt file2.txt dir3 dest_dir
+
 copy /file1.txt /dir2/file2.txt /dir3/dir4 /dir5/dest_dir
 
+
 Command: move
+
 Syntax: copy <source_file(s)> <destination_directory>
+
 Description: Copies multiple files or directories into the destination directory. The operation is done recursively on directories
+
 Examples:
+
 move file1.txt file2.txt dir3 dest_dir
+
 move /file1.txt /dir2/file2.txt /dir3/dir4 /dir5/dest_dir
 
+
 Command: rename
+
 Syntax: rename <old_name> <new_name>
+
+
 Description: Renames a file or directory with the new name given in command
+
 Examples
+
 rename old_f1.txt new_f1.txt
+
 rename /dir1/old_f1.txt /dir1/new_f1.txt
 
+
 Command: create_file
+
 Syntax: create_file <file_name> <destination_directory>
+
 Description: Creates a new file in the directory mentioned in <destination_directory>. Please not that "." in destination directory means current directory
+
 Example:
+
 create_file file1.txt .
+
 create_file file2.txt dir2
+
 create_file file3.txt /dir3/dir4
 
+
 Command: create_dir
+
 Syntax: create_dir <directory_name> <destination_directory>
+
 Description: Creates a new directory in the directory mentioned in <destination_directory>. Please not that "." in destination directory means current directory
+
 Example:
+
 create_file new_dir1 .
+
 create_file new_dir2 dir2
+
 create_file new_dir3 /dir3/dir4
 
+
 Command: delete_file
+
 Syntax: delete_file <file_name>
+
 Description: Deletes the given file
+
 Example:
+
 delete_file file1.txt
+
 delete_file /dir3/dir2/file2.txt
+
 delete_file dir2/file3.txt
 
+
+
 Command: delete_dir
+
 Syntax: delete_dir <dir_name>
+
 Description: Deletes the given directory
+
 Example:
+
 delete_dir dir1
+
 delete_dir /dir3/dir2/dir12
+
 delete_dir dir2/dir13
 
+
+
 Command: goto
+
 Syntax: goto <dir_name>
+
 Description: Traverses to the given directory
+
 Example:
+
 goto dir3
+
 goto /dir2/dir4
+
 goto dir1/dir2
 
+
+
 Command: search
+
 Syntax: search <file/dir_name>
+
 Description: Searches for the given file/directory from the current directory recursively
+
 Example:
+
 search file1.txt
+
 search dir1
 
+
+
 Command: snapshot
+
 Syntax: snapshot <dir_name> <dump_file_name>
+
 Description: Takes the current snapshot of the directory recursively and dumps the output to file mentioned in the file_name
+
 Example:
+
 snapshot dir dump1.txt
+
 snapshot /dir2/dir3 /dumps/dump2.txt
 
