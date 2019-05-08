@@ -1,0 +1,85 @@
+/home/tarunm/Documents/Assignments/os-assignments/terminal-file-explorer/.git
+
+HEAD	branches	config	description	hooks	index	info	logs	objects	packed-refs	refs	
+
+
+/home/tarunm/Documents/Assignments/os-assignments/terminal-file-explorer/.git/branches
+
+
+
+
+/home/tarunm/Documents/Assignments/os-assignments/terminal-file-explorer/.git/hooks
+
+applypatch-msg.sample	commit-msg.sample	fsmonitor-watchman.sample	post-update.sample	pre-applypatch.sample	pre-commit.sample	pre-push.sample	pre-rebase.sample	pre-receive.sample	prepare-commit-msg.sample	update.sample	
+
+
+/home/tarunm/Documents/Assignments/os-assignments/terminal-file-explorer/.git/info
+
+exclude	
+
+
+/home/tarunm/Documents/Assignments/os-assignments/terminal-file-explorer/.git/logs
+
+HEAD	refs	
+
+
+/home/tarunm/Documents/Assignments/os-assignments/terminal-file-explorer/.git/logs/refs
+
+heads	remotes	
+
+
+/home/tarunm/Documents/Assignments/os-assignments/terminal-file-explorer/.git/logs/refs/heads
+
+master	
+
+
+/home/tarunm/Documents/Assignments/os-assignments/terminal-file-explorer/.git/logs/refs/remotes
+
+origin	
+
+
+/home/tarunm/Documents/Assignments/os-assignments/terminal-file-explorer/.git/logs/refs/remotes/origin
+
+HEAD	
+
+
+/home/tarunm/Documents/Assignments/os-assignments/terminal-file-explorer/.git/objects
+
+info	pack	
+
+
+/home/tarunm/Documents/Assignments/os-assignments/terminal-file-explorer/.git/objects/info
+
+
+
+
+/home/tarunm/Documents/Assignments/os-assignments/terminal-file-explorer/.git/objects/pack
+
+pack-d28d17bca861a4f5650eb504df7a781e2060b7ba.idx	pack-d28d17bca861a4f5650eb504df7a781e2060b7ba.pack	
+
+
+/home/tarunm/Documents/Assignments/os-assignments/terminal-file-explorer/.git/refs
+
+heads	remotes	tags	
+
+
+/home/tarunm/Documents/Assignments/os-assignments/terminal-file-explorer/.git/refs/heads
+
+master	
+
+
+/home/tarunm/Documents/Assignments/os-assignments/terminal-file-explorer/.git/refs/remotes
+
+origin	
+
+
+/home/tarunm/Documents/Assignments/os-assignments/terminal-file-explorer/.git/refs/remotes/origin
+
+HEAD	
+
+
+/home/tarunm/Documents/Assignments/os-assignments/terminal-file-explorer/.git/refs/tags
+
+
+
+
